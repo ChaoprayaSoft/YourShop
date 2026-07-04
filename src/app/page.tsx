@@ -74,8 +74,13 @@ Looking for shop: {debugShopId}
           </button>
         )}
         <button className="btn-secondary" onClick={() => router.push('/marketplace')}>
-          Explore Group Shops
+          Explore Shops
         </button>
+        {profile.userId === process.env.NEXT_PUBLIC_ADMIN_USER_ID && (
+          <button className="btn-secondary" style={{ background: '#333', color: 'white' }} onClick={() => router.push('/admin')}>
+            Admin Dashboard
+          </button>
+        )}
       </div>
     </div>
   );
