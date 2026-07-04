@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { messagingApi } from '@line/bot-sdk';
 import { createMarket, getMarket } from '@/lib/db/markets';
+import { getUserProfile } from '@/lib/db/users';
 
 const client = new messagingApi.MessagingApiClient({
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || ''
@@ -81,26 +82,41 @@ export async function POST(req: Request) {
         console.log('Market created successfully');
 
       } else if (normalizedText === '/market link' || normalizedText === '/market') {
-        console.log(`Looking up market for group ${groupId}`);
-        const market = await getMarket(groupId);
-        
-        if (market) {
+        const userId = event.source.userId;
+        if (!userId) {
           await client.replyMessage({
             replyToken: event.replyToken,
-            messages: [{ 
-              type: 'text', 
-              text: `นี่คือลิงก์สำหรับเข้าสู่ตลาด '${market.name}':\n${magicLink}` 
-            }]
+            messages: [{ type: 'text', text: 'ไม่สามารถระบุตัวตนของคุณได้ กรุณาเพิ่มเพื่อนกับบอทก่อน' }]
           });
-        } else {
-          await client.replyMessage({
-            replyToken: event.replyToken,
-            messages: [{ 
-              type: 'text', 
-              text: `ยังไม่มีตลาดสำหรับกลุ่มนี้\nพิมพ์ '/market create [ชื่อตลาด]' เพื่อสร้างตลาดใหม่!` 
-            }]
-          });
+          continue;
         }
+
+        console.log(`Looking up market for user ${userId}`);
+        const userProfile = await getUserProfile(userId);
+        
+        if (userProfile && userProfile.marketId) {
+          const market = await getMarket(userProfile.marketId);
+          if (market) {
+            const userMagicLink = `https://liff.line.me/${liffId}?marketId=${userProfile.marketId}`;
+            await client.replyMessage({
+              replyToken: event.replyToken,
+              messages: [{ 
+                type: 'text', 
+                text: `นี่คือลิงก์สำหรับเข้าสู่ตลาด '${market.name}' ที่คุณตั้งไว้:\n${userMagicLink}` 
+              }]
+            });
+            continue;
+          }
+        }
+        
+        // Fallback if no market is set in profile
+        await client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [{ 
+            type: 'text', 
+            text: `คุณยังไม่ได้ตั้งค่าตลาดเริ่มต้นในโปรไฟล์\nกรุณาเข้าแอปพลิเคชันเพื่อตั้งค่าตลาดของคุณก่อน!` 
+          }]
+        });
       }
     }
 
