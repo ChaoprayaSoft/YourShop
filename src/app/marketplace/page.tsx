@@ -6,25 +6,29 @@ import { useLiff } from '@/components/LiffProvider';
 import { getShopsInGroup, Shop } from '@/lib/db/shops';
 
 export default function MarketplacePage() {
-  const { groupId } = useLiff();
+  const { profile, namespace } = useLiff();
   const router = useRouter();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!groupId) return;
-    getShopsInGroup(groupId)
-      .then(data => {
-        setShops(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, [groupId]);
+    if (!namespace) return;
 
-  if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>Loading Shops...</div>;
+    const fetchShops = async () => {
+      try {
+        const fetchedShops = await getShopsInGroup(namespace);
+        setShops(fetchedShops);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShops();
+  }, [namespace]);
+
+  if (!profile || !namespace) return <div style={{ padding: '24px', textAlign: 'center' }}>Loading Shops...</div>;
 
   return (
     <div className="animate-fade-in" style={{ padding: '16px 0', paddingBottom: '80px' }}>

@@ -6,7 +6,7 @@ import { useLiff } from '@/components/LiffProvider';
 import { createShop } from '@/lib/db/shops';
 
 export default function CreateShopPage() {
-  const { profile, groupId } = useLiff();
+  const { profile, namespace } = useLiff();
   const router = useRouter();
   
   const [name, setName] = useState('');
@@ -14,7 +14,7 @@ export default function CreateShopPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  if (!profile || !groupId) return null; // Wait for LiffProvider
+  if (!profile || !namespace) return null; // Wait for LiffProvider
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +24,7 @@ export default function CreateShopPage() {
     try {
       await createShop({
         id: profile.userId, // User ID is the shop ID
-        groupId,
+        groupId: namespace, // Use the resolved namespace (groupId or personal)
         name,
         description,
         ownerName: profile.displayName,

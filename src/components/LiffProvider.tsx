@@ -13,6 +13,7 @@ type LiffContextType = {
   liffError: string | null;
   profile: LiffProfile | null;
   groupId: string | null;
+  namespace: string | null;
   debugLog: string;
 };
 
@@ -21,6 +22,7 @@ const LiffContext = createContext<LiffContextType>({
   liffError: null,
   profile: null,
   groupId: null,
+  namespace: null,
   debugLog: '',
 });
 
@@ -32,6 +34,7 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
     liffError: null,
     profile: null,
     groupId: null,
+    namespace: null,
     debugLog: 'v5 - Mounting...',
   });
   const hasRun = useRef(false);
@@ -116,6 +119,7 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
           isInitialized: true,
           profile,
           groupId: gid,
+          namespace: gid || `personal-${profile.userId}`,
           debugLog: logs.join('\n'),
         }));
       } catch (err: any) {
