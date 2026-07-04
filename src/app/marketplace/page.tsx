@@ -33,7 +33,7 @@ export default function MarketplacePage() {
           const fetchedShops = await getShopsInMarket(user.marketId);
           setShops(fetchedShops);
         } else {
-          setError('Your selected market could not be found.');
+          setError(`Your selected market could not be found. (Debug: Looked for ID: "${user.marketId}")`);
         }
       } catch (err) {
         console.error(err);
