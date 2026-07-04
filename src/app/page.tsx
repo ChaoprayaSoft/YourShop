@@ -13,15 +13,14 @@ export default function Home() {
   const [debugShopId, setDebugShopId] = useState<string>('');
 
   useEffect(() => {
-    if (isInitialized && profile && namespace) {
-      const compositeShopId = `${namespace}_${profile.userId}`;
-      setDebugShopId(compositeShopId);
+    if (isInitialized && profile) {
+      setDebugShopId(profile.userId);
       
-      getShop(compositeShopId).then(shop => {
-        if (shop) setExistingShopId(compositeShopId);
+      getShop(profile.userId).then(shop => {
+        if (shop) setExistingShopId(profile.userId);
       });
     }
-  }, [isInitialized, profile, namespace]);
+  }, [isInitialized, profile]);
 
   if (liffError) {
     return (

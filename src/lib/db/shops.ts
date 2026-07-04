@@ -2,8 +2,8 @@ import { collection, doc, setDoc, getDoc, getDocs, query, where, serverTimestamp
 import { db } from '../firebase';
 
 export type Shop = {
-  id: string; // The user ID is the shop ID for simplicity (one shop per user per group)
-  groupId: string;
+  id: string; // The user ID is the shop ID for simplicity (one shop per user)
+  marketId: string;
   name: string;
   description: string;
   ownerName: string;
@@ -26,8 +26,8 @@ export async function getShop(shopId: string): Promise<Shop | null> {
   return snap.exists() ? (snap.data() as Shop) : null;
 }
 
-export async function getShopsInGroup(groupId: string): Promise<Shop[]> {
-  const shopsQuery = query(collection(db, 'shops'), where('groupId', '==', groupId));
+export async function getShopsInMarket(marketId: string): Promise<Shop[]> {
+  const shopsQuery = query(collection(db, 'shops'), where('marketId', '==', marketId));
   const snap = await getDocs(shopsQuery);
   return snap.docs.map(doc => doc.data() as Shop);
 }

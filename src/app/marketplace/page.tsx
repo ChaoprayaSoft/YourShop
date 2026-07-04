@@ -3,21 +3,27 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
-import { getShopsInGroup, Shop } from '@/lib/db/shops';
+import { getShopsInMarket, Shop } from '@/lib/db/shops';
+import { getMarket, Market } from '@/lib/db/markets';
 
 export default function MarketplacePage() {
   const { profile, namespace } = useLiff();
   const router = useRouter();
   const [shops, setShops] = useState<Shop[]>([]);
+  const [market, setMarket] = useState<Market | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!namespace) return;
 
-    const fetchShops = async () => {
+    const fetchData = async () => {
       try {
-        const fetchedShops = await getShopsInGroup(namespace);
+        const [fetchedShops, fetchedMarket] = await Promise.all([
+          getShopsInMarket(namespace),
+          getMarket(namespace)
+        ]);
         setShops(fetchedShops);
+        setMarket(fetchedMarket);
       } catch (err) {
         console.error(err);
       } finally {
@@ -25,7 +31,7 @@ export default function MarketplacePage() {
       }
     };
 
-    fetchShops();
+    fetchData();
   }, [namespace]);
 
   if (!profile || !namespace) return <div style={{ padding: '24px', textAlign: 'center' }}>Loading Shops...</div>;
@@ -40,7 +46,7 @@ export default function MarketplacePage() {
       </button>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h1 className="page-title">Marketplace</h1>
+        <h1 className="page-title">{market ? market.name : 'Marketplace'}</h1>
         <button 
           onClick={() => router.push('/shop/create')}
           style={{ padding: '8px 16px', background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 600 }}

@@ -44,7 +44,7 @@ export default function ShopDashboard() {
     );
   }
 
-  const isOwner = profile?.userId && shopId.endsWith(profile.userId);
+  const isOwner = profile?.userId === shopId;
 
   return (
     <div className="animate-fade-in" style={{ padding: '16px 0', paddingBottom: '80px' }}>

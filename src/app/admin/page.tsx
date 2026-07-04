@@ -60,7 +60,7 @@ export default function AdminDashboard() {
           <div key={shop.id} className="glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontWeight: 600 }}>{shop.name}</div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Owner: {shop.ownerName} | Group ID: {shop.groupId.substring(0,8)}...</div>
+              <div style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px' }}>Owner: {shop.ownerName} | Market ID: {shop.marketId.substring(0,8)}...</div>
             </div>
           </div>
         ))}
