@@ -114,12 +114,18 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
         
         if (gid) log('Group/Room ID: ' + gid);
 
+        // Read marketId directly from URL to bypass LIFF privacy restrictions
+        const searchParams = new URLSearchParams(window.location.search);
+        const marketId = searchParams.get('marketId');
+        
+        if (marketId) log('Found marketId in URL: ' + marketId);
+
         setState(prev => ({
           ...prev,
           isInitialized: true,
           profile,
           groupId: gid,
-          namespace: gid || `personal-${profile.userId}`,
+          namespace: marketId || gid || `personal-${profile.userId}`,
           debugLog: logs.join('\n'),
         }));
       } catch (err: any) {

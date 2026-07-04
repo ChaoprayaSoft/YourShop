@@ -4,42 +4,26 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { getShopsInMarket, Shop } from '@/lib/db/shops';
-import { getAllMarkets, Market } from '@/lib/db/markets';
+import { getMarket, Market } from '@/lib/db/markets';
 
 export default function MarketplacePage() {
-  const { profile } = useLiff();
+  const { profile, namespace } = useLiff();
   const router = useRouter();
-  
-  const [markets, setMarkets] = useState<Market[]>([]);
-  const [selectedMarketId, setSelectedMarketId] = useState<string>('');
-  
   const [shops, setShops] = useState<Shop[]>([]);
+  const [market, setMarket] = useState<Market | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Initial load of markets
   useEffect(() => {
-    getAllMarkets().then(m => {
-      setMarkets(m);
-      if (m.length > 0) {
-        setSelectedMarketId(m[0].id);
-      } else {
-        setLoading(false);
-      }
-    }).catch(err => {
-      console.error(err);
-      setLoading(false);
-    });
-  }, []);
+    if (!namespace) return;
 
-  // Fetch shops when selected market changes
-  useEffect(() => {
-    if (!selectedMarketId) return;
-
-    const fetchShops = async () => {
-      setLoading(true);
+    const fetchData = async () => {
       try {
-        const fetchedShops = await getShopsInMarket(selectedMarketId);
+        const [fetchedShops, fetchedMarket] = await Promise.all([
+          getShopsInMarket(namespace),
+          getMarket(namespace)
+        ]);
         setShops(fetchedShops);
+        setMarket(fetchedMarket);
       } catch (err) {
         console.error(err);
       } finally {
@@ -47,10 +31,10 @@ export default function MarketplacePage() {
       }
     };
 
-    fetchShops();
-  }, [selectedMarketId]);
+    fetchData();
+  }, [namespace]);
 
-  if (!profile) return null;
+  if (!profile || !namespace) return <div style={{ padding: '24px', textAlign: 'center' }}>Loading Shops...</div>;
 
   return (
     <div className="animate-fade-in" style={{ padding: '16px 0', paddingBottom: '80px' }}>
@@ -61,8 +45,8 @@ export default function MarketplacePage() {
         ← Home
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <h1 className="page-title">Marketplace</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <h1 className="page-title">{market ? market.name : 'Marketplace'}</h1>
         <button 
           onClick={() => router.push('/shop/create')}
           style={{ padding: '8px 16px', background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 600 }}
@@ -71,29 +55,9 @@ export default function MarketplacePage() {
         </button>
       </div>
 
-      <div className="glass-panel" style={{ padding: '16px', marginBottom: '24px' }}>
-        <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px', color: 'var(--text-secondary)' }}>Select Market</label>
-        {markets.length === 0 ? (
-          <div style={{ color: 'red', fontSize: '0.9rem' }}>No markets available.</div>
-        ) : (
-          <select 
-            value={selectedMarketId}
-            onChange={e => setSelectedMarketId(e.target.value)}
-            className="input-field"
-            style={{ marginBottom: 0 }}
-          >
-            {markets.map(m => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      {loading ? (
-        <div style={{ padding: '24px', textAlign: 'center' }}>Loading Shops...</div>
-      ) : shops.length === 0 ? (
+      {shops.length === 0 ? (
         <div className="glass-panel" style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-          No shops found in this market yet.
+          No shops found in this group yet.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

@@ -1,49 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { createShop } from '@/lib/db/shops';
-import { getAllMarkets, Market } from '@/lib/db/markets';
 
 export default function CreateShopPage() {
-  const { profile } = useLiff();
+  const { profile, namespace } = useLiff();
   const router = useRouter();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [marketId, setMarketId] = useState('');
-  const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fetchingMarkets, setFetchingMarkets] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    getAllMarkets().then(m => {
-      setMarkets(m);
-      if (m.length > 0) setMarketId(m[0].id);
-      setFetchingMarkets(false);
-    }).catch(err => {
-      console.error(err);
-      setFetchingMarkets(false);
-    });
-  }, []);
-
-  if (!profile) return null; // Wait for LiffProvider
+  if (!profile || !namespace) return null; // Wait for LiffProvider
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!marketId) {
-      setError('Please select a market');
-      return;
-    }
     setLoading(true);
     setError('');
 
     try {
       await createShop({
         id: profile.userId, // Scoped to user
-        marketId,
+        marketId: namespace,
         name,
         description,
         ownerName: profile.displayName,
@@ -71,27 +52,6 @@ export default function CreateShopPage() {
         {error && <div style={{ color: 'var(--accent-color)', marginBottom: '16px' }}>{error}</div>}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Select Market</label>
-            {fetchingMarkets ? (
-              <div style={{ padding: '12px', fontSize: '0.9rem', color: '#999' }}>Loading markets...</div>
-            ) : markets.length === 0 ? (
-              <div style={{ padding: '12px', fontSize: '0.9rem', color: 'red' }}>No markets exist. Admin must create one first.</div>
-            ) : (
-              <select 
-                value={marketId}
-                onChange={e => setMarketId(e.target.value)}
-                className="input-field"
-                required
-              >
-                {markets.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
-            )}
-          </div>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Shop Name</label>
             <input 
@@ -120,8 +80,8 @@ export default function CreateShopPage() {
           <button 
             type="submit" 
             className="btn-primary" 
-            disabled={loading || markets.length === 0}
-            style={{ marginTop: '16px', opacity: (loading || markets.length === 0) ? 0.7 : 1 }}
+            disabled={loading}
+            style={{ marginTop: '16px', opacity: loading ? 0.7 : 1 }}
           >
             {loading ? 'Creating...' : 'Create Shop'}
           </button>
