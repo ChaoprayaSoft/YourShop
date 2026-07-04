@@ -20,6 +20,11 @@ export async function createShop(shopData: Omit<Shop, 'createdAt'>) {
   return shopData.id;
 }
 
+export async function updateShop(shopId: string, updates: Partial<Shop>) {
+  const shopRef = doc(db, 'shops', shopId);
+  await setDoc(shopRef, updates, { merge: true });
+}
+
 export async function getShop(shopId: string): Promise<Shop | null> {
   const shopRef = doc(db, 'shops', shopId);
   const snap = await getDoc(shopRef);

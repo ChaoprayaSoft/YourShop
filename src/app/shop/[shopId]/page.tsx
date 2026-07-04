@@ -56,10 +56,23 @@ export default function ShopDashboard() {
       </button>
 
       <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
-        <h1 className="page-title">{shop.name}</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>{shop.description}</p>
-        <div style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>
-          By {shop.ownerName}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 className="page-title">{shop.name}</h1>
+            <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>{shop.description}</p>
+            <div style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>
+              By {shop.ownerName}
+            </div>
+          </div>
+          {isOwner && (
+            <button 
+              className="btn-secondary" 
+              style={{ padding: '6px 12px', fontSize: '0.9rem' }}
+              onClick={() => router.push(`/shop/${shopId}/edit`)}
+            >
+              Edit Shop
+            </button>
+          )}
         </div>
       </div>
 
