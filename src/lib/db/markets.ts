@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, serverTimestamp, collection, query, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, collection, query, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export type Market = {
@@ -21,6 +21,11 @@ export async function getMarket(marketId: string): Promise<Market | null> {
   const marketRef = doc(db, 'markets', marketId);
   const snap = await getDoc(marketRef);
   return snap.exists() ? (snap.data() as Market) : null;
+}
+
+export async function deleteMarket(marketId: string) {
+  const marketRef = doc(db, 'markets', marketId);
+  await deleteDoc(marketRef);
 }
 
 export async function getAllMarkets(): Promise<Market[]> {

@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, getDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export type Product = {
@@ -22,6 +22,17 @@ export async function addProduct(shopId: string, productData: Omit<Product, 'id'
   };
   await setDoc(productRef, newProduct);
   return newProduct.id;
+}
+
+export async function updateProduct(productId: string, updates: Partial<Product>) {
+  const productRef = doc(db, 'products', productId);
+  await setDoc(productRef, updates, { merge: true });
+}
+
+export async function getProduct(productId: string): Promise<Product | null> {
+  const productRef = doc(db, 'products', productId);
+  const snap = await getDoc(productRef);
+  return snap.exists() ? (snap.data() as Product) : null;
 }
 
 export async function getShopProducts(shopId: string): Promise<Product[]> {

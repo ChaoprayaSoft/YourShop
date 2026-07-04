@@ -204,7 +204,20 @@ export default function ShopDashboard() {
                   marginBottom: '12px'
                 }} 
               />
-              <h3 style={{ fontSize: '1rem', marginBottom: '4px' }}>{product.name}</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                <h3 style={{ fontSize: '1rem' }}>{product.name}</h3>
+                {isOwner && (
+                  <button 
+                    style={{ background: 'var(--background-white)', border: '1px solid #ddd', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/shop/${shopId}/product/${product.id}/edit`);
+                    }}
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
               <p style={{ fontWeight: 600, color: 'var(--primary-color)' }}>฿{product.price}</p>
             </div>
           ))}
