@@ -8,7 +8,7 @@ export type Order = {
   groupId: string;
   buyerId: string;
   buyerName: string;
-  items: { product: Product; quantity: number; choice?: string }[];
+  items: { product: Product; quantity: number; selectedChoices?: { name: string; price: number }[] }[];
   totalPrice: number;
   status: 'pending' | 'accepted' | 'rejected' | 'completed';
   rejectReason?: string;

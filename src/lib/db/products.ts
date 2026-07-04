@@ -1,6 +1,11 @@
 import { collection, doc, setDoc, getDocs, getDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
+export type ProductChoice = {
+  name: string;
+  price: number;
+};
+
 export type Product = {
   id: string;
   shopId: string;
@@ -8,7 +13,8 @@ export type Product = {
   description: string;
   price: number;
   imageUrl: string;
-  choices?: string[];
+  choiceType?: 'single' | 'multiple';
+  choices?: ProductChoice[];
   createdAt: any;
 };
 

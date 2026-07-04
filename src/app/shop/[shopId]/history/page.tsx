@@ -76,15 +76,23 @@ export default function ShopHistoryPage() {
               </div>
               
               <div style={{ marginBottom: order.status === 'rejected' && order.rejectReason ? '16px' : '0' }}>
-                {order.items.map((item, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    <span>
-                      {item.quantity}x {item.product.name}
-                      {item.choice && <span style={{ color: 'var(--secondary-color)', marginLeft: '4px' }}>({item.choice})</span>}
-                    </span>
-                    <span>฿{item.product.price * item.quantity}</span>
-                  </div>
-                ))}
+                {order.items.map((item, i) => {
+                  const itemChoicesTotal = item.selectedChoices?.reduce((sum, c) => sum + c.price, 0) || 0;
+                  const itemPrice = (item.product.price + itemChoicesTotal) * item.quantity;
+                  return (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{item.quantity}x {item.product.name}</div>
+                        {item.selectedChoices && item.selectedChoices.length > 0 && (
+                          <div style={{ fontSize: '0.8rem', marginLeft: '16px', color: 'var(--text-tertiary)' }}>
+                            + {item.selectedChoices.map(c => `${c.name} (฿${c.price})`).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                      <span style={{ fontWeight: 600 }}>฿{itemPrice}</span>
+                    </div>
+                  );
+                })}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '8px' }}>
                   <span>Total</span>
                   <span style={{ color: 'var(--primary-color)' }}>฿{order.totalPrice}</span>
