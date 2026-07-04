@@ -23,9 +23,14 @@ export async function POST(req: Request) {
 
         const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
         const magicLink = `https://liff.line.me/${liffId}?marketId=${groupId}`;
+        
+        const normalizedText = text.toLowerCase();
 
-        if (text.startsWith('/market create ')) {
-          const marketName = text.replace('/market create ', '').trim();
+        if (normalizedText.startsWith('/market create ')) {
+          // Use original text to preserve the market name's capitalization
+          // We find the index of the space after "create" in the normalized text
+          const prefixLength = '/market create '.length;
+          const marketName = text.substring(prefixLength).trim();
           
           if (!marketName) {
             await client.replyMessage({
@@ -47,7 +52,7 @@ export async function POST(req: Request) {
             }]
           });
 
-        } else if (text === '/market link') {
+        } else if (normalizedText === '/market link') {
           // Check if market exists
           const market = await getMarket(groupId);
           
