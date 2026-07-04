@@ -6,17 +6,17 @@ import { useEffect, useState } from 'react';
 import { getShop } from '@/lib/db/shops';
 
 export default function Home() {
-  const { isInitialized, liffError, profile, groupId, debugLog } = useLiff();
+  const { isInitialized, liffError, profile, groupId, namespace, debugLog } = useLiff();
   const router = useRouter();
   
   const [existingShopId, setExistingShopId] = useState<string | null>(null);
-
-  // Use groupId if available, otherwise fall back to a "personal" namespace using the user's ID
-  const namespace = groupId || `personal-${profile?.userId}`;
+  const [debugShopId, setDebugShopId] = useState<string>('');
 
   useEffect(() => {
     if (isInitialized && profile && namespace) {
       const compositeShopId = `${namespace}_${profile.userId}`;
+      setDebugShopId(compositeShopId);
+      
       getShop(compositeShopId).then(shop => {
         if (shop) setExistingShopId(compositeShopId);
       });
@@ -39,6 +39,7 @@ export default function Home() {
         <p style={{ color: 'var(--text-secondary)' }}>Initializing LINE Mini App</p>
         <pre style={{ marginTop: '24px', textAlign: 'left', fontSize: '0.8rem', background: '#f5f5f5', padding: '12px', borderRadius: '8px', color: '#333', overflowX: 'auto', whiteSpace: 'pre-wrap' }}>
           {debugLog}
+Looking for shop: {debugShopId}
         </pre>
       </div>
     );
@@ -57,6 +58,9 @@ export default function Home() {
         <h1 className="page-title">Welcome to the Marketplace</h1>
         <p style={{ color: 'var(--text-secondary)' }}>
           {`Hello, ${profile.displayName}!`}
+        </p>
+        <p style={{ fontSize: '0.7rem', color: '#999', marginTop: '16px' }}>
+          DEBUG: {debugShopId || 'no-id-yet'}
         </p>
       </div>
 
