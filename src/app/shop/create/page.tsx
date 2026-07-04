@@ -22,15 +22,16 @@ export default function CreateShopPage() {
     setError('');
 
     try {
+      const compositeShopId = `${namespace}_${profile.userId}`;
       await createShop({
-        id: profile.userId, // User ID is the shop ID
-        groupId: namespace, // Use the resolved namespace (groupId or personal)
+        id: compositeShopId, // Scoped to group and user
+        groupId: namespace,
         name,
         description,
         ownerName: profile.displayName,
         ownerPictureUrl: profile.pictureUrl
       });
-      router.push(`/shop/${profile.userId}`);
+      router.push(`/shop/${compositeShopId}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create shop');
       setLoading(false);

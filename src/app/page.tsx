@@ -2,10 +2,26 @@
 
 import { useLiff } from '@/components/LiffProvider';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { getShop } from '@/lib/db/shops';
 
 export default function Home() {
   const { isInitialized, liffError, profile, groupId, debugLog } = useLiff();
   const router = useRouter();
+  
+  const [existingShopId, setExistingShopId] = useState<string | null>(null);
+
+  // Use groupId if available, otherwise fall back to a "personal" namespace using the user's ID
+  const namespace = groupId || `personal-${profile?.userId}`;
+
+  useEffect(() => {
+    if (isInitialized && profile && namespace) {
+      const compositeShopId = `${namespace}_${profile.userId}`;
+      getShop(compositeShopId).then(shop => {
+        if (shop) setExistingShopId(compositeShopId);
+      });
+    }
+  }, [isInitialized, profile, namespace]);
 
   if (liffError) {
     return (
@@ -28,9 +44,6 @@ export default function Home() {
     );
   }
 
-  // Use groupId if available, otherwise fall back to a "personal" namespace using the user's ID
-  const namespace = groupId || `personal-${profile.userId}`;
-
   return (
     <div className="animate-fade-in" style={{ padding: '16px 0' }}>
       <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', marginBottom: '24px' }}>
@@ -48,9 +61,15 @@ export default function Home() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <button className="btn-primary" onClick={() => router.push('/shop/create')}>
-          Create Your Shop
-        </button>
+        {existingShopId ? (
+          <button className="btn-primary" onClick={() => router.push(`/shop/${existingShopId}`)}>
+            Manage Your Shop
+          </button>
+        ) : (
+          <button className="btn-primary" onClick={() => router.push('/shop/create')}>
+            Create Your Shop
+          </button>
+        )}
         <button className="btn-secondary" onClick={() => router.push('/marketplace')}>
           Explore Group Shops
         </button>
