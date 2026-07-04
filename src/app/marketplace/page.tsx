@@ -39,9 +39,14 @@ export default function MarketplacePage() {
         ← Home
       </button>
 
-      <div style={{ marginBottom: '24px' }}>
-        <h1 className="page-title">Group Shops</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Explore shops created by members of this group.</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <h1 className="page-title">Marketplace</h1>
+        <button 
+          onClick={() => router.push('/shop/create')}
+          style={{ padding: '8px 16px', background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 600 }}
+        >
+          + New Shop
+        </button>
       </div>
 
       {shops.length === 0 ? (

@@ -43,7 +43,7 @@ export default function Home() {
         )}
         <h1 className="page-title">Welcome to the Marketplace</h1>
         <p style={{ color: 'var(--text-secondary)' }}>
-          {groupId ? `Group: ${groupId.substring(0, 8)}...` : `Hello, ${profile.displayName}!`}
+          {`Hello, ${profile.displayName}!`}
         </p>
       </div>
 

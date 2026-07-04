@@ -27,7 +27,9 @@ export async function getShop(shopId: string): Promise<Shop | null> {
 }
 
 export async function getShopsInGroup(groupId: string): Promise<Shop[]> {
-  const shopsQuery = query(collection(db, 'shops'), where('groupId', '==', groupId));
+  // We are ignoring the groupId parameter and fetching ALL shops 
+  // to bypass LINE's strict group privacy IDs that isolate users.
+  const shopsQuery = query(collection(db, 'shops'));
   const snap = await getDocs(shopsQuery);
   return snap.docs.map(doc => doc.data() as Shop);
 }
