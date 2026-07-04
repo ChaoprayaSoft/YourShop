@@ -8,9 +8,10 @@ export type Order = {
   groupId: string;
   buyerId: string;
   buyerName: string;
-  items: { product: Product; quantity: number }[];
+  items: { product: Product; quantity: number; choice?: string }[];
   totalPrice: number;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  rejectReason?: string;
   createdAt: any;
 };
 
@@ -32,7 +33,7 @@ export async function getShopOrders(shopId: string): Promise<Order[]> {
   return snap.docs.map(doc => doc.data() as Order);
 }
 
-export async function updateOrderStatus(orderId: string, status: 'accepted' | 'rejected') {
+export async function updateOrderStatus(orderId: string, status: Order['status'], rejectReason?: string) {
   const orderRef = doc(db, 'orders', orderId);
-  await setDoc(orderRef, { status }, { merge: true });
+  await setDoc(orderRef, { status, ...(rejectReason ? { rejectReason } : {}) }, { merge: true });
 }

@@ -8,6 +8,7 @@ export type Product = {
   description: string;
   price: number;
   imageUrl: string;
+  choices?: string[];
   createdAt: any;
 };
 

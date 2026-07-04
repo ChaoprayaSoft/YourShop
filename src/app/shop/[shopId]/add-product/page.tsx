@@ -15,6 +15,7 @@ export default function AddProductPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [choicesRaw, setChoicesRaw] = useState('');
   const [image, setImage] = useState<File | null>(null);
   
   const [loading, setLoading] = useState(false);
@@ -39,12 +40,16 @@ export default function AddProductPage() {
       const imagePath = `products/${shopId}/${Date.now()}_${image.name}`;
       const imageUrl = await uploadImage(image, imagePath);
 
+      // Process choices
+      const choices = choicesRaw.split(',').map(c => c.trim()).filter(c => c.length > 0);
+
       // 2. Add Product to Firestore
       await addProduct(shopId, {
         name,
         description,
         price: parseFloat(price),
-        imageUrl
+        imageUrl,
+        ...(choices.length > 0 ? { choices } : {})
       });
 
       router.push(`/shop/${shopId}`);
@@ -109,6 +114,18 @@ export default function AddProductPage() {
               placeholder="0.00"
               className="input-field"
             />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Choices (Optional)</label>
+            <input 
+              type="text" 
+              value={choicesRaw}
+              onChange={(e) => setChoicesRaw(e.target.value)}
+              placeholder="e.g. Small, Medium, Large"
+              className="input-field"
+            />
+            <div style={{ fontSize: '0.8rem', color: '#999' }}>Separate choices with commas</div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
