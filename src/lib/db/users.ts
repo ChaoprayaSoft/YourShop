@@ -5,6 +5,7 @@ export type UserProfile = {
   id: string; // LINE userId
   displayName: string;
   pictureUrl?: string;
+  email?: string; // Required for notifications
   address: string;
   marketId: string; // Their default market location
   createdAt: any;

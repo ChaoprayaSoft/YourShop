@@ -33,11 +33,11 @@ export default function MarketplacePage() {
           const fetchedShops = await getShopsInMarket(user.marketId);
           setShops(fetchedShops);
         } else {
-          setError(`Your selected market could not be found. (Debug: Looked for ID: "${user.marketId}")`);
+          setError(`ไม่พบตลาดที่คุณเลือก (ข้อมูลอ้างอิง: "${user.marketId}")`);
         }
       } catch (err) {
         console.error(err);
-        setError('Failed to load market data.');
+        setError('เกิดข้อผิดพลาดในการโหลดข้อมูลตลาด');
       } finally {
         setLoading(false);
       }
@@ -46,7 +46,7 @@ export default function MarketplacePage() {
     fetchMarketData();
   }, [profile, router]);
 
-  if (!profile) return <div style={{ padding: '24px', textAlign: 'center' }}>Loading...</div>;
+  if (!profile) return <div style={{ padding: '24px', textAlign: 'center' }}>กำลังโหลด...</div>;
 
   return (
     <div className="animate-fade-in" style={{ padding: '16px 0', paddingBottom: '80px' }}>
@@ -54,11 +54,11 @@ export default function MarketplacePage() {
         style={{ color: 'var(--primary-color)', fontWeight: 600, marginBottom: '24px' }}
         onClick={() => router.push('/')}
       >
-        ← Home
+        ← หน้าแรก
       </button>
 
       {loading ? (
-        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Loading your market...</div>
+        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>กำลังโหลดตลาดของคุณ...</div>
       ) : error ? (
         <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--accent-color)' }}>
           {error}
@@ -68,13 +68,13 @@ export default function MarketplacePage() {
           <div style={{ marginBottom: '24px' }}>
             <h1 className="page-title">{market.name}</h1>
             <p style={{ color: 'var(--text-secondary)' }}>
-              {shops.length} Shop{shops.length !== 1 ? 's' : ''} available in your area
+              มี {shops.length} ร้านค้าที่เปิดให้บริการในพื้นที่ของคุณ
             </p>
           </div>
 
           {shops.length === 0 ? (
             <div className="glass-panel" style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              No shops found in this market yet.
+              ยังไม่มีร้านค้าในตลาดนี้
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

@@ -31,7 +31,7 @@ export default function Home() {
   if (liffError) {
     return (
       <div className="glass-panel animate-fade-in" style={{ padding: '24px', marginTop: '20vh', textAlign: 'center' }}>
-        <h1 className="page-title" style={{ color: 'var(--accent-color)' }}>Error</h1>
+        <h1 className="page-title" style={{ color: 'var(--accent-color)' }}>เกิดข้อผิดพลาด</h1>
         <p>{liffError}</p>
       </div>
     );
@@ -41,7 +41,7 @@ export default function Home() {
     return (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
         <div className="pulse"></div>
-        <div style={{ color: 'var(--text-secondary)' }}>Loading...</div>
+        <div style={{ color: 'var(--text-secondary)' }}>กำลังโหลด...</div>
       </div>
     );
   }
@@ -66,14 +66,14 @@ export default function Home() {
             </div>
           )}
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>Hi, {profile.displayName}</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>Welcome to YourShop</p>
+            <h1 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>สวัสดี, {profile.displayName}</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>ยินดีต้อนรับสู่ YourShop</p>
           </div>
           <button 
             style={{ padding: '8px 12px', background: 'var(--background-white)', border: '1px solid #ddd', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}
             onClick={() => router.push('/profile')}
           >
-            Edit Profile
+            แก้ไขโปรไฟล์
           </button>
         </div>
       )}
@@ -88,8 +88,8 @@ export default function Home() {
               🛍️
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>Explore Shops</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Discover amazing shops in your market area</p>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>เลือกร้านค้า</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>ค้นพบร้านค้าน่าสนใจในตลาดของคุณ</p>
             </div>
           </div>
         </div>
@@ -101,8 +101,8 @@ export default function Home() {
               🏪
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{existingShopId ? 'Manage My Shop' : 'Create a Shop'}</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{existingShopId ? 'View orders and update products' : 'Start selling in just a few clicks'}</p>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{existingShopId ? 'จัดการร้านค้าของคุณ' : 'สร้างร้านค้าใหม่'}</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{existingShopId ? 'ดูออเดอร์และอัปเดตสินค้าของคุณ' : 'เริ่มขายสินค้าได้ง่ายๆ ในไม่กี่คลิก'}</p>
             </div>
           </div>
         </div>
@@ -115,8 +115,8 @@ export default function Home() {
                 👑
               </div>
               <div>
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '4px', color: 'var(--accent-color)' }}>Admin Dashboard</h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Manage markets and app settings</p>
+                <h2 style={{ fontSize: '1.25rem', marginBottom: '4px', color: 'var(--accent-color)' }}>แผงควบคุมแอดมิน (Admin)</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>จัดการตลาดและการตั้งค่าระบบ</p>
               </div>
             </div>
           </div>
