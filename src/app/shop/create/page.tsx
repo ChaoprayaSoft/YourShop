@@ -4,17 +4,20 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { createShop } from '@/lib/db/shops';
+import { getUserProfile } from '@/lib/db/users';
+import { useLanguage } from '@/components/LanguageProvider';
 
 export default function CreateShopPage() {
-  const { profile, namespace } = useLiff();
+  const { profile } = useLiff();
   const router = useRouter();
-  
+  const { t } = useLanguage();
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  if (!profile || !namespace) return null; // Wait for LiffProvider
+  if (!profile) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,56 +25,69 @@ export default function CreateShopPage() {
     setError('');
 
     try {
-      await createShop({
-        id: profile.userId, // Scoped to user
-        marketId: namespace,
+      const user = await getUserProfile(profile.userId);
+      if (!user || !user.marketId) {
+        setError(t('select_market_error'));
+        setLoading(false);
+        return;
+      }
+
+      const shopId = await createShop({
+        id: profile.userId,
         name,
         description,
+        ownerId: profile.userId,
         ownerName: profile.displayName,
-        ownerPictureUrl: profile.pictureUrl
+        ownerPictureUrl: profile.pictureUrl,
+        marketId: user.marketId
       });
-      router.push(`/shop/${profile.userId}`);
+
+      router.push(`/shop/${shopId}`);
     } catch (err: any) {
-      setError(err.message || 'Failed to create shop');
+      setError(err.message || t('error'));
       setLoading(false);
     }
   };
 
   return (
-    <div className="animate-fade-in" style={{ padding: '16px 0' }}>
+    <div className="animate-fade-in" style={{ padding: '16px 0', paddingBottom: '80px' }}>
       <button 
         style={{ color: 'var(--primary-color)', fontWeight: 600, marginBottom: '24px' }}
-        onClick={() => router.back()}
+        onClick={() => router.push('/')}
       >
-        ← Back
+        ← {t('home')}
       </button>
 
       <div className="glass-panel" style={{ padding: '24px' }}>
-        <h1 className="page-title" style={{ fontSize: '1.5rem', marginBottom: '24px' }}>Create Your Shop</h1>
-        
+        <h1 className="page-title" style={{ fontSize: '1.5rem', marginBottom: '8px' }}>
+          {t('create_shop_title')}
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
+          {t('create_shop_subtitle')}
+        </p>
+
         {error && <div style={{ color: 'var(--accent-color)', marginBottom: '16px' }}>{error}</div>}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Shop Name</label>
+            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{t('shop_name')}</label>
             <input 
               required
-              type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Grandma's Bakery"
+              placeholder={t('shop_name_placeholder')}
               className="input-field"
             />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Description</label>
+            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{t('description')}</label>
             <textarea 
               required
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell us what you sell!"
-              rows={4}
+              placeholder={t('description_placeholder')}
+              rows={3}
               className="input-field"
               style={{ resize: 'vertical' }}
             />
@@ -83,7 +99,7 @@ export default function CreateShopPage() {
             disabled={loading}
             style={{ marginTop: '16px', opacity: loading ? 0.7 : 1 }}
           >
-            {loading ? 'Creating...' : 'Create Shop'}
+            {loading ? t('saving') : t('create_shop')}
           </button>
         </form>
       </div>

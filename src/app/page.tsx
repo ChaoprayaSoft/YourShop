@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getShop } from '@/lib/db/shops';
 import { getUserProfile } from '@/lib/db/users';
+import { useLanguage } from '@/components/LanguageProvider';
 
 export default function Home() {
   const { isInitialized, liffError, profile } = useLiff();
   const router = useRouter();
+  const { t, lang, setLang } = useLanguage();
   
   const [existingShopId, setExistingShopId] = useState<string | null>(null);
   const [checkingProfile, setCheckingProfile] = useState(true);
@@ -31,7 +33,7 @@ export default function Home() {
   if (liffError) {
     return (
       <div className="glass-panel animate-fade-in" style={{ padding: '24px', marginTop: '20vh', textAlign: 'center' }}>
-        <h1 className="page-title" style={{ color: 'var(--accent-color)' }}>เกิดข้อผิดพลาด</h1>
+        <h1 className="page-title" style={{ color: 'var(--accent-color)' }}>{t('error')}</h1>
         <p>{liffError}</p>
       </div>
     );
@@ -41,7 +43,7 @@ export default function Home() {
     return (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
         <div className="pulse"></div>
-        <div style={{ color: 'var(--text-secondary)' }}>กำลังโหลด...</div>
+        <div style={{ color: 'var(--text-secondary)' }}>{t('loading')}</div>
       </div>
     );
   }
@@ -51,6 +53,23 @@ export default function Home() {
   return (
     <div className="animate-fade-in" style={{ padding: '24px 0' }}>
       
+      {/* Language Toggle */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+        <button 
+          style={{ 
+            background: 'var(--background-white)', 
+            border: '1px solid #ddd', 
+            padding: '4px 12px', 
+            borderRadius: '99px', 
+            fontSize: '0.8rem', 
+            fontWeight: 600 
+          }}
+          onClick={() => setLang(lang === 'en' ? 'th' : 'en')}
+        >
+          {lang === 'en' ? '🇹🇭 ไทย' : '🇬🇧 English'}
+        </button>
+      </div>
+
       {/* Profile Header */}
       {profile && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
@@ -66,14 +85,14 @@ export default function Home() {
             </div>
           )}
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>สวัสดี, {profile.displayName}</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>ยินดีต้อนรับสู่ YourShop</p>
+            <h1 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{t('hi')}, {profile.displayName}</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>{t('welcome_to')}</p>
           </div>
           <button 
             style={{ padding: '8px 12px', background: 'var(--background-white)', border: '1px solid #ddd', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}
             onClick={() => router.push('/profile')}
           >
-            แก้ไขโปรไฟล์
+            {t('edit_profile')}
           </button>
         </div>
       )}
@@ -88,8 +107,8 @@ export default function Home() {
               🛍️
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>เลือกร้านค้า</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>ค้นพบร้านค้าน่าสนใจในตลาดของคุณ</p>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{t('explore_shops')}</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{t('explore_desc')}</p>
             </div>
           </div>
         </div>
@@ -101,8 +120,8 @@ export default function Home() {
               🏪
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{existingShopId ? 'จัดการร้านค้าของคุณ' : 'สร้างร้านค้าใหม่'}</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{existingShopId ? 'ดูออเดอร์และอัปเดตสินค้าของคุณ' : 'เริ่มขายสินค้าได้ง่ายๆ ในไม่กี่คลิก'}</p>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{existingShopId ? t('manage_shop') : t('create_shop')}</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{existingShopId ? t('manage_shop_desc') : t('create_shop_desc')}</p>
             </div>
           </div>
         </div>
@@ -115,8 +134,8 @@ export default function Home() {
                 👑
               </div>
               <div>
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '4px', color: 'var(--accent-color)' }}>แผงควบคุมแอดมิน (Admin)</h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>จัดการตลาดและการตั้งค่าระบบ</p>
+                <h2 style={{ fontSize: '1.25rem', marginBottom: '4px', color: 'var(--accent-color)' }}>{t('admin_dashboard')}</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{t('admin_desc')}</p>
               </div>
             </div>
           </div>

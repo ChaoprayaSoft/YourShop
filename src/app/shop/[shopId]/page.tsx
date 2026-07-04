@@ -8,6 +8,7 @@ import { getShopProducts, Product, ProductChoice } from '@/lib/db/products';
 import { getShopOrders, updateOrderStatus, Order, placeOrder } from '@/lib/db/orders';
 import { getMarket } from '@/lib/db/markets';
 import { getUserProfile } from '@/lib/db/users';
+import { useLanguage } from '@/components/LanguageProvider';
 
 type CartItem = { product: Product; quantity: number; selectedChoices?: ProductChoice[] };
 
@@ -16,6 +17,7 @@ export default function ShopDashboard() {
   const router = useRouter();
   const params = useParams();
   const shopId = params.shopId as string;
+  const { t } = useLanguage();
 
   const [shop, setShop] = useState<Shop | null>(null);
   const [marketName, setMarketName] = useState<string>('');
@@ -56,13 +58,13 @@ export default function ShopDashboard() {
       });
   }, [shopId]);
 
-  if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>กำลังโหลดข้อมูลร้านค้า...</div>;
+  if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
 
   if (!shop) {
     return (
       <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', marginTop: '20vh' }}>
-        <h2>ไม่พบร้านค้า!</h2>
-        <button className="btn-primary" onClick={() => router.push('/')} style={{ marginTop: '16px' }}>กลับสู่หน้าแรก</button>
+        <h2>{t('shop_not_found')}</h2>
+        <button className="btn-primary" onClick={() => router.push('/')} style={{ marginTop: '16px' }}>{t('go_home')}</button>
       </div>
     );
   }
@@ -133,10 +135,10 @@ export default function ShopDashboard() {
 
       setCart([]);
       setShowCartModal(false);
-      alert('สั่งซื้อสำเร็จแล้ว!');
+      alert(t('order_success'));
     } catch (err) {
       console.error(err);
-      alert('เกิดข้อผิดพลาดในการสั่งซื้อ');
+      alert(t('order_error'));
     } finally {
       setPlacingOrder(false);
     }
@@ -171,7 +173,7 @@ export default function ShopDashboard() {
         style={{ color: 'var(--primary-color)', fontWeight: 600, marginBottom: '24px' }}
         onClick={() => router.push('/')}
       >
-        ← หน้าแรก
+        ← {t('home')}
       </button>
 
       {/* Shop Header */}
@@ -186,7 +188,7 @@ export default function ShopDashboard() {
             )}
             <p style={{ color: 'var(--text-secondary)', marginTop: '12px' }}>{shop.description}</p>
             <div style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>
-              โดย {shop.ownerName}
+              {t('by')} {shop.ownerName}
             </div>
           </div>
           {isOwner && (
@@ -196,13 +198,13 @@ export default function ShopDashboard() {
                 style={{ padding: '6px 12px', fontSize: '0.9rem' }}
                 onClick={() => router.push(`/shop/${shopId}/edit`)}
               >
-                แก้ไขร้านค้า
+                {t('edit_shop')}
               </button>
               <button 
                 style={{ background: 'var(--background-white)', color: 'var(--text-primary)', border: '1px solid #ddd', padding: '6px 12px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600 }}
                 onClick={() => router.push(`/shop/${shopId}/history`)}
               >
-                ประวัติ
+                {t('history')}
               </button>
             </div>
           )}
@@ -211,21 +213,21 @@ export default function ShopDashboard() {
 
       {/* Products Section */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '1.25rem' }}>สินค้าทั้งหมด ({products.length})</h2>
+        <h2 style={{ fontSize: '1.25rem' }}>{t('all_products')} ({products.length})</h2>
         {isOwner && (
           <button 
             className="btn-primary" 
             style={{ padding: '8px 16px', fontSize: '0.9rem' }}
             onClick={() => router.push(`/shop/${shopId}/add-product`)}
           >
-            + เพิ่มสินค้า
+            {t('add_product')}
           </button>
         )}
       </div>
 
       {products.length === 0 ? (
         <div className="glass-panel" style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-          ยังไม่มีสินค้าในร้านนี้
+          {t('no_products')}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -267,7 +269,7 @@ export default function ShopDashboard() {
                       router.push(`/shop/${shopId}/product/${product.id}/edit`);
                     }}
                   >
-                    แก้ไข
+                    {t('edit')}
                   </button>
                 )}
               </div>
@@ -280,17 +282,17 @@ export default function ShopDashboard() {
       {/* Owner Dashboard - Orders */}
       {isOwner && orders.some(o => o.status === 'pending' || o.status === 'accepted') && (
         <div style={{ marginTop: '32px' }}>
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '16px' }}>ออเดอร์ที่กำลังดำเนินการ</h2>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '16px' }}>{t('pending_orders')}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {orders.filter(o => o.status === 'pending' || o.status === 'accepted').map(order => (
               <div key={order.id} className="glass-panel" style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '1.1rem' }}>ออเดอร์จากคุณ {order.buyerName}</h3>
+                  <h3 style={{ fontSize: '1.1rem' }}>{t('order_from')} {order.buyerName}</h3>
                   {order.status === 'accepted' && (
-                    <span style={{ background: 'var(--primary-color)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>กำลังเตรียม</span>
+                    <span style={{ background: 'var(--primary-color)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{t('preparing')}</span>
                   )}
                   {order.status === 'pending' && (
-                    <span style={{ background: '#FFC107', color: 'black', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>รอยืนยัน</span>
+                    <span style={{ background: '#FFC107', color: 'black', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{t('waiting_confirm')}</span>
                   )}
                 </div>
                 
@@ -313,7 +315,7 @@ export default function ShopDashboard() {
                     );
                   })}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '8px' }}>
-                    <span>รวมทั้งหมด</span>
+                    <span>{t('total')}</span>
                     <span style={{ color: 'var(--primary-color)' }}>฿{order.totalPrice}</span>
                   </div>
                 </div>
@@ -324,7 +326,7 @@ export default function ShopDashboard() {
                       style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--accent-color)', color: 'var(--accent-color)', fontWeight: 600 }}
                       onClick={() => setRejectingOrder(order)}
                     >
-                      ปฏิเสธ
+                      {t('reject')}
                     </button>
                     <button 
                       className="btn-primary"
@@ -335,7 +337,7 @@ export default function ShopDashboard() {
                         await sendNotification({ ...order, status: 'accepted' }, 'accepted');
                       }}
                     >
-                      รับออเดอร์
+                      {t('accept_order')}
                     </button>
                   </div>
                 )}
@@ -350,7 +352,7 @@ export default function ShopDashboard() {
                       await sendNotification({ ...order, status: 'completed' }, 'completed');
                     }}
                   >
-                    ทำเครื่องหมายว่าเสร็จสมบูรณ์
+                    {t('mark_completed')}
                   </button>
                 )}
               </div>
@@ -375,7 +377,7 @@ export default function ShopDashboard() {
               {selectedProduct.choices && selectedProduct.choices.length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
                   <label style={{ display: 'block', fontWeight: 600, marginBottom: '12px' }}>
-                    {selectedProduct.choiceType === 'single' ? 'เลือกตัวเลือก:' : 'เลือกเพิ่มเติม:'}
+                    {selectedProduct.choiceType === 'single' ? t('select_choice') : t('select_add_on')}
                   </label>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -414,7 +416,7 @@ export default function ShopDashboard() {
               )}
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <span style={{ fontWeight: 600 }}>จำนวน</span>
+                <span style={{ fontWeight: 600 }}>{t('quantity')}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <button 
                     style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#eee', fontWeight: 'bold' }}
@@ -433,14 +435,14 @@ export default function ShopDashboard() {
                   style={{ flex: 1, padding: '16px', border: '1px solid #ddd', borderRadius: '12px', fontWeight: 600 }}
                   onClick={() => setSelectedProduct(null)}
                 >
-                  ยกเลิก
+                  {t('cancel')}
                 </button>
                 <button 
                   className="btn-primary" 
                   style={{ flex: 2, padding: '16px', borderRadius: '12px' }}
                   onClick={handleAddToCart}
                 >
-                  ใส่ตะกร้า • ฿{getProductPriceWithChoices() * quantity}
+                  {t('add_to_cart')} • ฿{getProductPriceWithChoices() * quantity}
                 </button>
               </div>
             </div>
@@ -452,11 +454,11 @@ export default function ShopDashboard() {
       {rejectingOrder && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
           <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '24px' }}>
-            <h2 style={{ marginBottom: '16px' }}>ปฏิเสธออเดอร์</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>กรุณาระบุเหตุผลให้ลูกค้าทราบ</p>
+            <h2 style={{ marginBottom: '16px' }}>{t('reject_order_title')}</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>{t('reject_reason_desc')}</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-              {["สินค้าหมด", "ร้านปิด", "ไม่สามารถส่งถึงที่นั่นได้"].map(reason => (
+              {[t('out_of_stock'), t('shop_closed'), t('cannot_deliver')].map(reason => (
                 <button 
                   key={reason}
                   style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '8px', textAlign: 'left', background: rejectReason === reason ? 'var(--primary-color)' : 'white', color: rejectReason === reason ? 'white' : 'black' }}
@@ -467,9 +469,9 @@ export default function ShopDashboard() {
               ))}
               <input 
                 type="text" 
-                placeholder="เหตุผลอื่นๆ..." 
+                placeholder={t('other_reason')} 
                 className="input-field" 
-                value={!["สินค้าหมด", "ร้านปิด", "ไม่สามารถส่งถึงที่นั่นได้"].includes(rejectReason) ? rejectReason : ''}
+                value={![t('out_of_stock'), t('shop_closed'), t('cannot_deliver')].includes(rejectReason) ? rejectReason : ''}
                 onChange={e => setRejectReason(e.target.value)}
               />
             </div>
@@ -479,7 +481,7 @@ export default function ShopDashboard() {
                 style={{ flex: 1, padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontWeight: 600 }}
                 onClick={() => { setRejectingOrder(null); setRejectReason(''); }}
               >
-                ยกเลิก
+                {t('cancel')}
               </button>
               <button 
                 className="btn-primary" 
@@ -487,7 +489,7 @@ export default function ShopDashboard() {
                 onClick={handleRejectSubmit}
                 disabled={!rejectReason}
               >
-                ยืนยันการปฏิเสธ
+                {t('confirm_reject')}
               </button>
             </div>
           </div>
@@ -506,9 +508,9 @@ export default function ShopDashboard() {
             onClick={() => setShowCartModal(true)}
           >
             <div style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '99px' }}>
-              {cart.reduce((sum, item) => sum + item.quantity, 0)} ชิ้น
+              {cart.reduce((sum, item) => sum + item.quantity, 0)} {t('items')}
             </div>
-            <div style={{ fontWeight: 'bold' }}>ดูตะกร้าสินค้า</div>
+            <div style={{ fontWeight: 'bold' }}>{t('view_cart')}</div>
             <div style={{ fontWeight: 'bold' }}>฿{cartTotal}</div>
           </button>
         </div>
@@ -519,7 +521,7 @@ export default function ShopDashboard() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div className="glass-panel animate-slide-up" style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '24px', borderBottomLeftRadius: 0, borderBottomRightRadius: 0, maxHeight: '80vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '1.5rem' }}>ตะกร้าของคุณ</h2>
+              <h2 style={{ fontSize: '1.5rem' }}>{t('your_cart')}</h2>
               <button style={{ fontWeight: 'bold', fontSize: '1.2rem' }} onClick={() => setShowCartModal(false)}>✕</button>
             </div>
             
@@ -571,7 +573,7 @@ export default function ShopDashboard() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 600, marginBottom: '24px' }}>
-              <span>รวมทั้งหมด</span>
+              <span>{t('total')}</span>
               <span style={{ color: 'var(--primary-color)' }}>฿{cartTotal}</span>
             </div>
 
@@ -581,7 +583,7 @@ export default function ShopDashboard() {
               onClick={handlePlaceOrder}
               disabled={placingOrder}
             >
-              {placingOrder ? 'กำลังส่งคำสั่งซื้อ...' : 'ยืนยันการสั่งซื้อ'}
+              {placingOrder ? t('placing_order') : t('place_order')}
             </button>
           </div>
         </div>

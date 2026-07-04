@@ -6,10 +6,12 @@ import { useLiff } from '@/components/LiffProvider';
 import { getShopsInMarket, Shop } from '@/lib/db/shops';
 import { getMarket, Market } from '@/lib/db/markets';
 import { getUserProfile } from '@/lib/db/users';
+import { useLanguage } from '@/components/LanguageProvider';
 
 export default function MarketplacePage() {
   const { profile } = useLiff();
   const router = useRouter();
+  const { t } = useLanguage();
   
   const [market, setMarket] = useState<Market | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
@@ -33,20 +35,20 @@ export default function MarketplacePage() {
           const fetchedShops = await getShopsInMarket(user.marketId);
           setShops(fetchedShops);
         } else {
-          setError(`ไม่พบตลาดที่คุณเลือก (ข้อมูลอ้างอิง: "${user.marketId}")`);
+          setError(`${t('market_not_found')} (Debug: Looked for ID: "${user.marketId}")`);
         }
       } catch (err) {
         console.error(err);
-        setError('เกิดข้อผิดพลาดในการโหลดข้อมูลตลาด');
+        setError(t('error'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchMarketData();
-  }, [profile, router]);
+  }, [profile, router, t]);
 
-  if (!profile) return <div style={{ padding: '24px', textAlign: 'center' }}>กำลังโหลด...</div>;
+  if (!profile) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
 
   return (
     <div className="animate-fade-in" style={{ padding: '16px 0', paddingBottom: '80px' }}>
@@ -54,11 +56,11 @@ export default function MarketplacePage() {
         style={{ color: 'var(--primary-color)', fontWeight: 600, marginBottom: '24px' }}
         onClick={() => router.push('/')}
       >
-        ← หน้าแรก
+        ← {t('home')}
       </button>
 
       {loading ? (
-        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>กำลังโหลดตลาดของคุณ...</div>
+        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{t('loading_market')}</div>
       ) : error ? (
         <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', color: 'var(--accent-color)' }}>
           {error}
@@ -68,13 +70,13 @@ export default function MarketplacePage() {
           <div style={{ marginBottom: '24px' }}>
             <h1 className="page-title">{market.name}</h1>
             <p style={{ color: 'var(--text-secondary)' }}>
-              มี {shops.length} ร้านค้าที่เปิดให้บริการในพื้นที่ของคุณ
+              {shops.length} {t('shops_available')}
             </p>
           </div>
 
           {shops.length === 0 ? (
             <div className="glass-panel" style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              ยังไม่มีร้านค้าในตลาดนี้
+              {t('no_shops_market')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

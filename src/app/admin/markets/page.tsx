@@ -7,12 +7,14 @@ import { getAllMarkets, Market, createMarket, deleteMarket } from '@/lib/db/mark
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Shop } from '@/lib/db/shops';
+import { useLanguage } from '@/components/LanguageProvider';
 
 type MarketWithCount = Market & { shopCount: number };
 
 export default function AdminMarketsPage() {
   const { profile } = useLiff();
   const router = useRouter();
+  const { t } = useLanguage();
   
   const [markets, setMarkets] = useState<MarketWithCount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ export default function AdminMarketsPage() {
     }
   }, [profile]);
 
-  if (!profile || profile.userId !== process.env.NEXT_PUBLIC_ADMIN_USER_ID) return <div style={{ padding: '24px', textAlign: 'center' }}>Unauthorized</div>;
+  if (!profile || profile.userId !== process.env.NEXT_PUBLIC_ADMIN_USER_ID) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('unauthorized')}</div>;
 
   const handleCreateMarket = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,16 +94,16 @@ export default function AdminMarketsPage() {
         style={{ color: 'var(--primary-color)', fontWeight: 600, marginBottom: '24px' }}
         onClick={() => router.push('/admin')}
       >
-        ← Back to Admin
+        ← {t('back_to_admin')}
       </button>
 
-      <h1 className="page-title" style={{ marginBottom: '24px' }}>Manage Markets</h1>
+      <h1 className="page-title" style={{ marginBottom: '24px' }}>{t('manage_markets')}</h1>
 
       <div className="glass-panel" style={{ padding: '24px', marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '1.25rem', marginBottom: '16px' }}>Create New Market</h2>
+        <h2 style={{ fontSize: '1.25rem', marginBottom: '16px' }}>{t('create_new_market')}</h2>
         <form onSubmit={handleCreateMarket} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>Market ID</label>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>{t('market_id')}</label>
             <input
               type="text"
               value={marketId}
@@ -112,7 +114,7 @@ export default function AdminMarketsPage() {
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>Market Name</label>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600 }}>{t('market_name')}</label>
             <input
               type="text"
               value={marketName}
@@ -124,14 +126,14 @@ export default function AdminMarketsPage() {
           </div>
           {msg && <div style={{ color: msg.startsWith('Error') ? 'red' : 'green', fontSize: '0.9rem' }}>{msg}</div>}
           <button type="submit" className="btn-primary" disabled={creating}>
-            {creating ? 'Creating...' : 'Create Market'}
+            {creating ? t('creating') : t('create_market')}
           </button>
         </form>
       </div>
 
-      <h2 style={{ fontSize: '1.25rem', marginBottom: '16px' }}>Existing Markets</h2>
+      <h2 style={{ fontSize: '1.25rem', marginBottom: '16px' }}>{t('existing_markets')}</h2>
       {loading ? (
-        <div style={{ color: 'var(--text-secondary)' }}>Loading markets...</div>
+        <div style={{ color: 'var(--text-secondary)' }}>{t('loading')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {markets.map(market => (
@@ -140,14 +142,14 @@ export default function AdminMarketsPage() {
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{market.name}</h3>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ID: {market.id}</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 600, marginTop: '4px' }}>
-                  {market.shopCount} Shop{market.shopCount !== 1 ? 's' : ''}
+                  {market.shopCount} {t('shops')}
                 </div>
               </div>
               <button 
                 style={{ padding: '8px 16px', background: 'rgba(255, 107, 107, 0.1)', color: 'var(--accent-color)', border: '1px solid rgba(255,107,107,0.3)', borderRadius: '8px', fontWeight: 600 }}
                 onClick={() => handleDelete(market.id, market.shopCount)}
               >
-                Delete
+                {t('delete')}
               </button>
             </div>
           ))}

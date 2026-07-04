@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { getUserProfile, updateUserProfile } from '@/lib/db/users';
 import { getAllMarkets, Market } from '@/lib/db/markets';
+import { useLanguage } from '@/components/LanguageProvider';
 
 export default function ProfilePage() {
   const { profile } = useLiff();
   const router = useRouter();
+  const { t } = useLanguage();
   
   const [address, setAddress] = useState('');
   const [marketId, setMarketId] = useState('');
@@ -38,17 +40,17 @@ export default function ProfilePage() {
       setLoading(false);
     }).catch(err => {
       console.error(err);
-      setError('เกิดข้อผิดพลาดในการโหลดข้อมูลโปรไฟล์');
+      setError(t('profile_error'));
       setLoading(false);
     });
-  }, [profile]);
+  }, [profile, t]);
 
-  if (!profile) return <div style={{ padding: '24px', textAlign: 'center' }}>กำลังโหลดข้อมูลโปรไฟล์...</div>;
+  if (!profile) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!marketId) {
-      setError('กรุณาเลือกตลาดของคุณ');
+      setError(t('select_market_error'));
       return;
     }
     
@@ -65,7 +67,7 @@ export default function ProfilePage() {
       });
       router.push('/');
     } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      setError(err.message || t('error'));
       setSaving(false);
     }
   };
@@ -77,16 +79,16 @@ export default function ProfilePage() {
           style={{ color: 'var(--primary-color)', fontWeight: 600, marginBottom: '24px' }}
           onClick={() => router.back()}
         >
-          ← ย้อนกลับ
+          ← {t('back')}
         </button>
       )}
 
       <div className="glass-panel" style={{ padding: '24px' }}>
         <h1 className="page-title" style={{ fontSize: '1.5rem', marginBottom: '8px' }}>
-          {isFirstTime ? 'ยินดีต้อนรับ! มาตั้งค่าโปรไฟล์กันเถอะ' : 'แก้ไขโปรไฟล์'}
+          {isFirstTime ? t('setup_welcome') : t('edit_profile')}
         </h1>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
-          {isFirstTime ? 'กรุณากรอกที่อยู่จัดส่ง อีเมล และเลือกตลาดของคุณเพื่อเริ่มใช้งาน' : 'อัปเดตที่อยู่จัดส่ง อีเมล หรือตลาดเริ่มต้นของคุณ'}
+          {isFirstTime ? t('setup_desc') : t('edit_profile_desc')}
         </p>
         
         {error && <div style={{ color: 'var(--accent-color)', marginBottom: '16px' }}>{error}</div>}
@@ -94,27 +96,27 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>อีเมล (Email)</label>
+            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{t('email_label')}</label>
             <input 
               required
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@email.com"
+              placeholder={t('email_placeholder')}
               className="input-field"
             />
             <div style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 600 }}>
-              * จำเป็นต้องระบุเพื่อรับการแจ้งเตือนเมื่อมีออเดอร์ใหม่หรือสถานะออเดอร์อัปเดต
+              {t('email_notice')}
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>ที่อยู่สำหรับจัดส่ง</label>
+            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{t('address_label')}</label>
             <textarea 
               required
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="บ้านเลขที่, ถนน, อาคาร, ชั้น ฯลฯ"
+              placeholder={t('address_placeholder')}
               rows={3}
               className="input-field"
               style={{ resize: 'vertical' }}
@@ -122,11 +124,11 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>ตลาดของคุณ</label>
+            <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{t('market_label')}</label>
             {loading ? (
-              <div style={{ padding: '12px', fontSize: '0.9rem', color: '#999' }}>กำลังโหลดข้อมูลตลาด...</div>
+              <div style={{ padding: '12px', fontSize: '0.9rem', color: '#999' }}>{t('market_loading')}</div>
             ) : markets.length === 0 ? (
-              <div style={{ padding: '12px', fontSize: '0.9rem', color: 'red' }}>ยังไม่มีตลาดในระบบ</div>
+              <div style={{ padding: '12px', fontSize: '0.9rem', color: 'red' }}>{t('market_empty')}</div>
             ) : (
               <select 
                 value={marketId}
@@ -134,14 +136,14 @@ export default function ProfilePage() {
                 className="input-field"
                 required
               >
-                <option value="" disabled>เลือกตลาดของคุณ...</option>
+                <option value="" disabled>{t('market_select')}</option>
                 {markets.map(m => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
               </select>
             )}
             <div style={{ fontSize: '0.8rem', color: '#999' }}>
-              ร้านค้าจากตลาดนี้จะแสดงเมื่อคุณค้นหาสินค้า
+              {t('market_hint')}
             </div>
           </div>
 
@@ -151,7 +153,7 @@ export default function ProfilePage() {
             disabled={saving || markets.length === 0}
             style={{ marginTop: '16px', opacity: (saving || markets.length === 0) ? 0.7 : 1 }}
           >
-            {saving ? 'กำลังบันทึก...' : (isFirstTime ? 'เสร็จสิ้นการตั้งค่า' : 'บันทึกการเปลี่ยนแปลง')}
+            {saving ? t('saving') : (isFirstTime ? t('complete_setup') : t('save_changes'))}
           </button>
         </form>
       </div>

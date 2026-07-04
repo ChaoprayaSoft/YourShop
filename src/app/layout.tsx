@@ -8,6 +8,8 @@ export const metadata: Metadata = {
 
 import { LiffProvider } from '@/components/LiffProvider';
 
+import { LanguageProvider } from '@/components/LanguageProvider';
+
 export default function RootLayout({
   children,
 }: {
@@ -16,11 +18,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LiffProvider>
-          <main className="page-container">
-            {children}
-          </main>
-        </LiffProvider>
+        <LanguageProvider>
+          <LiffProvider>
+            <main className="page-container">
+              {children}
+            </main>
+          </LiffProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
