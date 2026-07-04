@@ -93,7 +93,7 @@ export default function AddProductPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Chocolate Chip Cookie"
-              style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem', outline: 'none' }}
+              className="input-field"
             />
           </div>
 
@@ -107,7 +107,7 @@ export default function AddProductPage() {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
-              style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem', outline: 'none' }}
+              className="input-field"
             />
           </div>
 
@@ -119,7 +119,8 @@ export default function AddProductPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Delicious details..."
               rows={3}
-              style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem', outline: 'none', resize: 'vertical' }}
+              className="input-field"
+              style={{ resize: 'vertical' }}
             />
           </div>
 

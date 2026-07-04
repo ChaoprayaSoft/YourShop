@@ -10,12 +10,9 @@ export default function Home() {
   const router = useRouter();
   
   const [existingShopId, setExistingShopId] = useState<string | null>(null);
-  const [debugShopId, setDebugShopId] = useState<string>('');
 
   useEffect(() => {
     if (isInitialized && profile) {
-      setDebugShopId(profile.userId);
-      
       getShop(profile.userId).then(shop => {
         if (shop) setExistingShopId(profile.userId);
       });
@@ -35,11 +32,6 @@ export default function Home() {
     return (
       <div className="glass-panel animate-fade-in" style={{ padding: '24px', marginTop: '20vh', textAlign: 'center' }}>
         <h1 className="page-title">Loading...</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Initializing LINE Mini App</p>
-        <pre style={{ marginTop: '24px', textAlign: 'left', fontSize: '0.8rem', background: '#f5f5f5', padding: '12px', borderRadius: '8px', color: '#333', overflowX: 'auto', whiteSpace: 'pre-wrap' }}>
-          {debugLog}
-Looking for shop: {debugShopId}
-        </pre>
       </div>
     );
   }
@@ -57,9 +49,6 @@ Looking for shop: {debugShopId}
         <h1 className="page-title">Welcome to the Marketplace</h1>
         <p style={{ color: 'var(--text-secondary)' }}>
           {`Hello, ${profile.displayName}!`}
-        </p>
-        <p style={{ fontSize: '0.7rem', color: '#999', marginTop: '16px' }}>
-          DEBUG: {debugShopId || 'no-id-yet'}
         </p>
       </div>
 
