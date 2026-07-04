@@ -82,61 +82,14 @@ export async function POST(req: Request) {
         console.log('Market created successfully');
 
       } else if (normalizedText === '/market link' || normalizedText === '/market') {
-        const userId = event.source.userId;
-        let foundMarketId: string | null = null;
-        let foundMarketName: string | null = null;
-        
-        // 1. Try to find market from User Profile first
-        if (userId) {
-          try {
-            console.log(`Looking up market for user ${userId}`);
-            const userProfile = await getUserProfile(userId);
-            if (userProfile && userProfile.marketId) {
-              const market = await getMarket(userProfile.marketId);
-              if (market) {
-                foundMarketId = userProfile.marketId;
-                foundMarketName = market.name;
-              }
-            }
-          } catch (err) {
-            console.error('Error fetching user profile in webhook:', err);
-          }
-        }
-
-        // 2. If no user market found, fallback to Group Market
-        if (!foundMarketId && groupId) {
-          try {
-            console.log(`Fallback: Looking up market for group ${groupId}`);
-            const groupMarket = await getMarket(groupId);
-            if (groupMarket) {
-              foundMarketId = groupId;
-              foundMarketName = groupMarket.name;
-            }
-          } catch (err) {
-            console.error('Error fetching group market in webhook:', err);
-          }
-        }
-
-        // 3. Reply based on what we found
-        if (foundMarketId && foundMarketName) {
-          const userMagicLink = `https://liff.line.me/${liffId}?marketId=${foundMarketId}`;
-          await client.replyMessage({
-            replyToken: event.replyToken,
-            messages: [{ 
-              type: 'text', 
-              text: `นี่คือลิงก์สำหรับเข้าสู่ตลาด '${foundMarketName}':\n${userMagicLink}` 
-            }]
-          });
-        } else {
-          // 4. No market found anywhere
-          await client.replyMessage({
-            replyToken: event.replyToken,
-            messages: [{ 
-              type: 'text', 
-              text: `ยังไม่มีตลาดสำหรับกลุ่มนี้ หรือคุณยังไม่ได้ตั้งค่าตลาดในโปรไฟล์!\n\nพิมพ์ '/market create [ชื่อตลาด]' เพื่อสร้างตลาดใหม่สำหรับกลุ่มนี้\nหรือเข้าแอปพลิเคชันเพื่อตั้งค่าตลาดส่วนตัวของคุณ` 
-            }]
-          });
-        }
+        const baseMagicLink = `https://liff.line.me/${liffId}`;
+        await client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [{ 
+            type: 'text', 
+            text: `คลิกที่นี่เพื่อเข้าสู่ YourShop (ระบบจะนำคุณไปยังตลาดของคุณโดยอัตโนมัติ):\n${baseMagicLink}` 
+          }]
+        });
       }
     }
 
