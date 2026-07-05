@@ -50,8 +50,7 @@ export default function AddProductPage() {
     try {
       const validChoices = choices.filter(c => c.name.trim() !== '');
 
-      await addProduct({
-        shopId,
+      await addProduct(shopId, {
         name,
         description,
         price: parseFloat(price),
