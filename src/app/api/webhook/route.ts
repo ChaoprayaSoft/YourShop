@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { messagingApi } from '@line/bot-sdk';
 import { createMarket, getMarket } from '@/lib/db/markets';
 import { getUserProfile } from '@/lib/db/users';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const client = new messagingApi.MessagingApiClient({
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || ''
@@ -81,13 +83,50 @@ export async function POST(req: Request) {
         await createMarket(groupId, marketName);
         console.log('Market created successfully');
 
-      } else if (normalizedText === '/market link' || normalizedText === '/market') {
-        const baseMagicLink = `https://liff.line.me/${liffId}`;
+      } else if (normalizedText.startsWith('/market ads ')) {
+        const prefixLength = '/market ads '.length;
+        const shopName = text.substring(prefixLength).trim();
+        
+        if (!shopName) {
+          await client.replyMessage({
+            replyToken: event.replyToken,
+            messages: [{ type: 'text', text: 'กรุณาระบุชื่อร้านค้า เช่น /market ads ร้านป้าสม' }]
+          });
+          continue;
+        }
+        
+        // Find shop by name in this market
+        const shopsRef = collection(db, 'shops');
+        const q = query(shopsRef, where('marketId', '==', groupId), where('name', '==', shopName));
+        const shopsSnap = await getDocs(q);
+        
+        if (shopsSnap.empty) {
+          await client.replyMessage({
+            replyToken: event.replyToken,
+            messages: [{ type: 'text', text: `ไม่พบร้านค้าชื่อ '${shopName}' ในตลาดนี้` }]
+          });
+          continue;
+        }
+
+        const shopData = shopsSnap.docs[0].data();
+        const adMessage = shopData.adMessage || `ร้าน ${shopName} ยินดีให้บริการ!`;
+        const shopLink = `https://liff.line.me/${liffId}?shopId=${shopData.id}&marketId=${groupId}`;
+        
         await client.replyMessage({
           replyToken: event.replyToken,
           messages: [{ 
             type: 'text', 
-            text: `คลิกที่นี่เพื่อเข้าสู่ YourShop (ระบบจะนำคุณไปยังตลาดของคุณโดยอัตโนมัติ):\n${baseMagicLink}` 
+            text: `${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}` 
+          }]
+        });
+
+      } else if (normalizedText === '/market link' || normalizedText === '/market') {
+        const baseMagicLink = `https://liff.line.me/${liffId}?marketId=${groupId}`;
+        await client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [{ 
+            type: 'text', 
+            text: `คลิกที่นี่เพื่อเข้าสู่ตลาด:\n${baseMagicLink}` 
           }]
         });
       }

@@ -10,6 +10,7 @@ export type Shop = {
   ownerPictureUrl?: string;
   isOpen?: boolean;
   isBanned?: boolean;
+  adMessage?: string;
   createdAt: any;
 };
 

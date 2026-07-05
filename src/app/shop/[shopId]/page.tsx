@@ -37,12 +37,17 @@ export default function ShopDashboard() {
   const [rejectingOrder, setRejectingOrder] = useState<Order | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [showAdsModal, setShowAdsModal] = useState(false);
+  const [adMessage, setAdMessage] = useState('');
+  const [savingAd, setSavingAd] = useState(false);
 
   useEffect(() => {
     if (!shopId) return;
     Promise.all([getShop(shopId), getShopProducts(shopId), getShopOrders(shopId)])
       .then(async ([shopData, productsData, ordersData]) => {
         setShop(shopData);
+        if (shopData?.adMessage) {
+          setAdMessage(shopData.adMessage);
+        }
         setProducts(productsData);
         setOrders(ordersData);
         
@@ -516,14 +521,25 @@ export default function ShopDashboard() {
       {/* Ads Modal (Owner) */}
       {showAdsModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '24px' }}>
-            <h2 style={{ marginBottom: '16px', color: 'var(--primary-color)' }}>สร้าง Ads (Create Ads)</h2>
+          <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '500px', background: 'white', padding: '24px' }}>
+            <h2 style={{ marginBottom: '8px', color: 'var(--primary-color)' }}>สร้าง Ads (Create Ads)</h2>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.95rem' }}>
-              Copy the text below and send it to the LINE Bot to generate an ad for your shop with a direct link.
+              พิมพ์ข้อความโฆษณาร้านของคุณด้านล่าง แล้วกดบันทึก เมื่อลูกค้าหรือคุณพิมพ์ <strong style={{ color: 'var(--primary-color)' }}>/market ads {shop.name}</strong> ในแชท บอทจะส่งข้อความนี้พร้อมลิงก์ร้านค้าของคุณให้
             </p>
             
-            <div style={{ padding: '16px', background: '#f5f5f5', borderRadius: '8px', border: '1px dashed #ccc', marginBottom: '24px', fontFamily: 'monospace', fontSize: '1.1rem' }}>
-              /market ads {shop.name}
+            <textarea
+              className="input-field"
+              rows={6}
+              placeholder="พิมพ์ข้อความโฆษณาที่นี่ เช่น โปรโมชั่นพิเศษวันนี้ ลดราคา 50% ทุกเมนู!"
+              value={adMessage}
+              onChange={(e) => setAdMessage(e.target.value)}
+              style={{ resize: 'vertical', marginBottom: '16px' }}
+            />
+
+            <div style={{ padding: '12px', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '8px', marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              <strong>ตัวอย่างที่บอทจะส่ง:</strong>
+              <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap' }}>{adMessage || '(ข้อความโฆษณาของคุณ)'}</div>
+              <div style={{ marginTop: '8px', color: 'var(--primary-color)' }}>เชิญแวะดูและสั่งซื้อได้ที่<br/>https://liff.line.me/...</div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -531,18 +547,30 @@ export default function ShopDashboard() {
                 className="btn-secondary"
                 style={{ flex: 1, padding: '12px', borderRadius: '8px' }}
                 onClick={() => setShowAdsModal(false)}
+                disabled={savingAd}
               >
-                Close
+                {t('cancel')}
               </button>
               <button 
                 className="btn-primary" 
-                style={{ flex: 1, padding: '12px', borderRadius: '8px' }}
-                onClick={() => {
-                  navigator.clipboard.writeText(`/market ads ${shop.name}`);
-                  alert('Copied to clipboard!');
+                style={{ flex: 1, padding: '12px', borderRadius: '8px', opacity: savingAd ? 0.7 : 1 }}
+                disabled={savingAd}
+                onClick={async () => {
+                  setSavingAd(true);
+                  try {
+                    await updateShop(shopId, { adMessage });
+                    setShop(prev => prev ? { ...prev, adMessage } : prev);
+                    alert('บันทึกโฆษณาเรียบร้อยแล้ว! (Ads saved successfully)');
+                    setShowAdsModal(false);
+                  } catch (err) {
+                    console.error(err);
+                    alert(t('error'));
+                  } finally {
+                    setSavingAd(false);
+                  }
                 }}
               >
-                Copy Text
+                {savingAd ? 'กำลังบันทึก...' : 'บันทึก (Save)'}
               </button>
             </div>
           </div>
