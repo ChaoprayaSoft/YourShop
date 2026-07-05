@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { addProduct, ProductChoice } from '@/lib/db/products';
 import { useLanguage } from '@/components/LanguageProvider';
+import Select from '@/components/Select';
 
 export default function AddProductPage() {
   const { profile } = useLiff();
@@ -141,14 +142,14 @@ export default function AddProductPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
               <label style={{ fontWeight: 600, fontSize: '0.9rem' }}>{t('selection_type')}</label>
-              <select 
+              <Select 
                 value={choiceType} 
-                onChange={(e) => setChoiceType(e.target.value as 'single' | 'multiple')}
-                className="input-field"
-              >
-                <option value="single">{t('single_choice')}</option>
-                <option value="multiple">{t('multiple_choice')}</option>
-              </select>
+                onChange={(val) => setChoiceType(val as 'single' | 'multiple')}
+                options={[
+                  { label: t('single_choice'), value: 'single' },
+                  { label: t('multiple_choice'), value: 'multiple' }
+                ]}
+              />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

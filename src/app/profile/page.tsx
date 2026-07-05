@@ -6,6 +6,7 @@ import { useLiff } from '@/components/LiffProvider';
 import { getUserProfile, updateUserProfile } from '@/lib/db/users';
 import { getAllMarkets, Market } from '@/lib/db/markets';
 import { useLanguage } from '@/components/LanguageProvider';
+import Select from '@/components/Select';
 
 export default function ProfilePage() {
   const { profile } = useLiff();
@@ -130,17 +131,16 @@ export default function ProfilePage() {
             ) : markets.length === 0 ? (
               <div style={{ padding: '12px', fontSize: '0.9rem', color: 'red' }}>{t('market_empty')}</div>
             ) : (
-              <select 
+              <Select 
                 value={marketId}
-                onChange={e => setMarketId(e.target.value)}
-                className="input-field"
+                onChange={(value) => setMarketId(value)}
                 required
-              >
-                <option value="" disabled>{t('market_select')}</option>
-                {markets.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
+                placeholder={t('market_select')}
+                options={[
+                  { label: t('market_select'), value: '', disabled: true },
+                  ...markets.map(m => ({ label: m.name, value: m.id }))
+                ]}
+              />
             )}
             <div style={{ fontSize: '0.8rem', color: '#999' }}>
               {t('market_hint')}

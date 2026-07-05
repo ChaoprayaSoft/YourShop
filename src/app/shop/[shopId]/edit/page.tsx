@@ -5,6 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { getShop, updateShop } from '@/lib/db/shops';
 import { getAllMarkets, Market } from '@/lib/db/markets';
+import { useLanguage } from '@/components/LanguageProvider';
+import Select from '@/components/Select';
 
 export default function EditShopPage() {
   const { profile } = useLiff();
@@ -129,16 +131,16 @@ export default function EditShopPage() {
             {markets.length === 0 ? (
               <div style={{ padding: '12px', fontSize: '0.9rem', color: 'red' }}>No markets exist.</div>
             ) : (
-              <select 
-                value={marketId}
-                onChange={e => setMarketId(e.target.value)}
-                className="input-field"
-                required
-              >
-                {markets.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
+              <Select 
+              value={marketId}
+              onChange={(val) => setMarketId(val)}
+              required
+              placeholder={t('market_select')}
+              options={[
+                { label: t('market_select'), value: '', disabled: true },
+                ...markets.map(m => ({ label: m.name, value: m.id }))
+              ]}
+            />
             )}
             <div style={{ fontSize: '0.8rem', color: '#999' }}>
               Changing this will move your shop to a different market in the marketplace.

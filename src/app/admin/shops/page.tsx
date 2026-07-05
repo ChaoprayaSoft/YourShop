@@ -9,6 +9,7 @@ import { useLiff } from '@/components/LiffProvider';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/LanguageProvider';
 import { getUserProfile } from '@/lib/db/users';
+import Select from '@/components/Select';
 
 export default function AdminShopsPage() {
   const { profile } = useLiff();
@@ -109,17 +110,15 @@ export default function AdminShopsPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 className="page-title" style={{ margin: 0 }}>{t('all_shops')}</h1>
-        <select 
-          className="input-field" 
-          style={{ width: 'auto', padding: '8px 12px' }}
+        <Select 
           value={selectedMarketId}
-          onChange={e => setSelectedMarketId(e.target.value)}
-        >
-          <option value="ALL">All Markets</option>
-          {markets.map(m => (
-            <option key={m.id} value={m.id}>{m.name}</option>
-          ))}
-        </select>
+          onChange={(value) => setSelectedMarketId(value)}
+          options={[
+            { label: 'All Markets', value: 'ALL' },
+            ...markets.map(m => ({ label: m.name, value: m.id }))
+          ]}
+          style={{ width: '200px' }}
+        />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
