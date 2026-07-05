@@ -289,87 +289,97 @@ export default function ShopDashboard() {
       </button>
 
       {/* Shop Header */}
-      <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', opacity: isClosed ? 0.7 : 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {shop.name}
-              {isClosed && <span style={{ fontSize: '0.8rem', background: '#999', color: 'white', padding: '4px 8px', borderRadius: '4px' }}>CLOSED</span>}
-            </h1>
-            {marketName && (
-              <div style={{ display: 'inline-block', background: 'rgba(123, 97, 255, 0.1)', color: 'var(--secondary-color)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, marginTop: '4px' }}>
-                📍 {marketName}
-              </div>
-            )}
-            <p style={{ color: 'var(--text-secondary)', marginTop: '12px' }}>{shop.description}</p>
-            <div style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>
-              {t('by')} {shop.ownerName}
-            </div>
-          </div>
-          {isOwner && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', width: '100%', marginTop: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>🪙 {ownerProfile?.coins || 0} Coins</span>
-                  <button 
-                    style={{ background: 'var(--primary-color)', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600, border: 'none' }}
-                    onClick={() => setShowTopUpModal(true)}
-                  >
-                    Top Up
-                  </button>
-                </div>
-                <div style={{ fontSize: '0.8rem', color: isPastDue ? '#c62828' : 'var(--text-secondary)' }}>
-                  Fees: {maintenanceFee} coins / {Math.max(0, daysUntilDue)} days ({new Date(dueDateMillis).toLocaleDateString('th-TH')})
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'flex-end', width: '100%' }}>
-                {isPastDue ? (
-                  <button 
-                    style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.85rem', fontWeight: 600 }}
-                    onClick={handlePayMaintenanceFee}
-                  >
-                    Pay Fee
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleToggleShopStatus}
-                    style={{ 
-                      background: isClosed ? 'var(--primary-color)' : 'rgba(255, 107, 107, 0.1)', 
-                      color: isClosed ? 'white' : 'var(--accent-color)', 
-                      border: isClosed ? 'none' : '1px solid rgba(255,107,107,0.3)', 
-                      padding: '6px 12px', 
-                      borderRadius: '99px', 
-                      fontSize: '0.85rem', 
-                      fontWeight: 600 
-                    }}
-                  >
-                    {isClosed ? 'Open' : 'Close'}
-                  </button>
-                )}
-                <button 
-                  style={{ background: 'var(--secondary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.85rem', fontWeight: 600 }}
-                  onClick={() => setShowAdsModal(true)}
-                >
-                  Ads
-                </button>
-                <button 
-                  className="btn-secondary" 
-                  style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-                  onClick={() => router.push(`/shop/${shopId}/edit`)}
-                >
-                  Edit
-                </button>
-                <button 
-                  style={{ background: 'var(--background-white)', color: 'var(--text-primary)', border: '1px solid #ddd', padding: '6px 12px', borderRadius: '99px', fontSize: '0.85rem', fontWeight: 600 }}
-                  onClick={() => router.push(`/shop/${shopId}/history`)}
-                >
-                  History
-                </button>
-              </div>
+      <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', opacity: isClosed ? 0.7 : 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Row 1: Shop Name */}
+        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', marginBottom: '8px' }}>
+          {shop.name}
+          {isClosed && <span style={{ fontSize: '0.8rem', background: '#999', color: 'white', padding: '4px 8px', borderRadius: '4px' }}>CLOSED</span>}
+        </h1>
+
+        {/* Row 2: Market & By */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+          {marketName && (
+            <div style={{ background: 'rgba(123, 97, 255, 0.1)', color: 'var(--secondary-color)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>
+              📍 {marketName}
             </div>
           )}
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>
+            {t('by')} {shop.ownerName}
+          </div>
         </div>
+
+        {/* Row 3: Description */}
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>{shop.description}</p>
+
+        {/* Row 4 & 5: Owner Dashboard */}
+        {isOwner && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+            
+            {/* Coins & Fees */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>🪙 {ownerProfile?.coins || 0} Coins</span>
+                <button 
+                  style={{ background: 'var(--primary-color)', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                  onClick={() => setShowTopUpModal(true)}
+                >
+                  Top Up
+                </button>
+              </div>
+              <div style={{ fontSize: '0.85rem', color: isPastDue ? '#c62828' : 'var(--text-secondary)' }}>
+                Fees: {maintenanceFee} coins / {Math.max(0, daysUntilDue)} days ({new Date(dueDateMillis).toLocaleDateString('th-TH')})
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' }}>
+              {isPastDue ? (
+                <button 
+                  style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={handlePayMaintenanceFee}
+                >
+                  Pay Fee
+                </button>
+              ) : (
+                <button 
+                  onClick={handleToggleShopStatus}
+                  style={{ 
+                    background: isClosed ? 'var(--primary-color)' : 'rgba(255, 107, 107, 0.1)', 
+                    color: isClosed ? 'white' : 'var(--accent-color)', 
+                    border: isClosed ? 'none' : '1px solid rgba(255,107,107,0.3)', 
+                    padding: '8px 16px', 
+                    borderRadius: '99px', 
+                    fontSize: '0.9rem', 
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isClosed ? 'Open' : 'Close'}
+                </button>
+              )}
+              <button 
+                style={{ background: 'var(--secondary-color)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+                onClick={() => setShowAdsModal(true)}
+              >
+                Ads
+              </button>
+              <button 
+                className="btn-secondary" 
+                style={{ padding: '8px 16px', fontSize: '0.9rem' }}
+                onClick={() => router.push(`/shop/${shopId}/edit`)}
+              >
+                Edit
+              </button>
+              <button 
+                style={{ background: 'var(--background-white)', color: 'var(--text-primary)', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+                onClick={() => router.push(`/shop/${shopId}/history`)}
+              >
+                History
+              </button>
+            </div>
+
+          </div>
+        )}
       </div>
 
       {/* Products Section */}
