@@ -34,12 +34,20 @@ export default function AddProductPage() {
     try {
       const { storage } = await import('@/lib/firebase');
       const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+      const imageCompression = (await import('browser-image-compression')).default;
       
-      const fileExt = file.name.split('.').pop();
+      const options = {
+        maxSizeMB: 0.3,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
+      
+      const fileExt = file.name.split('.').pop() || 'jpg';
       const fileName = `products/${shopId}_${Date.now()}.${fileExt}`;
       const storageRef = ref(storage, fileName);
       
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, compressedFile);
       const url = await getDownloadURL(storageRef);
       setImageUrl(url);
     } catch (err: any) {
