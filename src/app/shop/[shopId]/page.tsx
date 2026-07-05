@@ -329,13 +329,20 @@ export default function ShopDashboard() {
             {orders.filter(o => o.status === 'pending' || o.status === 'accepted').map(order => (
               <div key={order.id} className="glass-panel" style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '1.1rem' }}>{t('order_from')} {order.buyerName}</h3>
-                  {order.status === 'accepted' && (
-                    <span style={{ background: 'var(--primary-color)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{t('preparing')}</span>
-                  )}
-                  {order.status === 'pending' && (
-                    <span style={{ background: '#FFC107', color: 'black', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{t('waiting_confirm')}</span>
-                  )}
+                  <div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
+                      {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString() : ''}
+                    </div>
+                    <h3 style={{ fontSize: '1.1rem' }}>{t('order_from')} {order.buyerName}</h3>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {order.status === 'accepted' && (
+                      <span style={{ background: 'var(--primary-color)', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, height: 'fit-content' }}>{t('preparing')}</span>
+                    )}
+                    {order.status === 'pending' && (
+                      <span style={{ background: '#FFC107', color: 'black', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, height: 'fit-content' }}>{t('waiting_confirm')}</span>
+                    )}
+                  </div>
                 </div>
 
                 <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '8px', fontSize: '0.9rem' }}>
