@@ -46,3 +46,9 @@ export async function getShopProducts(shopId: string): Promise<Product[]> {
   const snap = await getDocs(productsQuery);
   return snap.docs.map(doc => doc.data() as Product);
 }
+
+import { deleteDoc } from 'firebase/firestore';
+export async function deleteProduct(productId: string) {
+  const productRef = doc(db, 'products', productId);
+  await deleteDoc(productRef);
+}

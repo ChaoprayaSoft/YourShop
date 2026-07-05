@@ -8,13 +8,17 @@ export type Shop = {
   description: string;
   ownerName: string;
   ownerPictureUrl?: string;
+  isOpen?: boolean;
+  isBanned?: boolean;
   createdAt: any;
 };
 
-export async function createShop(shopData: Omit<Shop, 'createdAt'>) {
+export async function createShop(shopData: Omit<Shop, 'createdAt' | 'isOpen' | 'isBanned'>) {
   const shopRef = doc(db, 'shops', shopData.id);
   await setDoc(shopRef, {
     ...shopData,
+    isOpen: true,
+    isBanned: false,
     createdAt: serverTimestamp(),
   });
   return shopData.id;

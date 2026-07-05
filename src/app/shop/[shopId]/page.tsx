@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
-import { getShop, Shop } from '@/lib/db/shops';
+import { getShop, updateShop, Shop } from '@/lib/db/shops';
 import { getShopProducts, Product, ProductChoice } from '@/lib/db/products';
 import { getShopOrders, updateOrderStatus, Order, placeOrder } from '@/lib/db/orders';
 import { getMarket } from '@/lib/db/markets';
@@ -36,6 +36,7 @@ export default function ShopDashboard() {
   // Owner States
   const [rejectingOrder, setRejectingOrder] = useState<Order | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [showAdsModal, setShowAdsModal] = useState(false);
 
   useEffect(() => {
     if (!shopId) return;
@@ -70,8 +71,21 @@ export default function ShopDashboard() {
   }
 
   const isOwner = profile?.userId === shopId;
+  const isClosed = shop.isOpen === false;
 
   // --- Functions ---
+  const handleToggleShopStatus = async () => {
+    const newStatus = !isClosed;
+    if (!confirm(newStatus ? 'Are you sure you want to OPEN the shop?' : 'Are you sure you want to CLOSE the shop?')) return;
+    try {
+      await updateShop(shopId, { isOpen: newStatus });
+      setShop({ ...shop, isOpen: newStatus });
+    } catch (err) {
+      console.error(err);
+      alert(t('error'));
+    }
+  };
+
   const sendNotification = async (order: Order, type: 'placed' | 'accepted' | 'rejected' | 'completed') => {
     try {
       const targetUserId = type === 'placed' ? order.shopId : order.buyerId;
@@ -93,7 +107,7 @@ export default function ShopDashboard() {
   };
 
   const handleAddToCart = () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || isClosed) return;
     setCart(prev => {
       const existing = prev.find(item => {
         if (item.product.id !== selectedProduct.id) return false;
@@ -111,9 +125,12 @@ export default function ShopDashboard() {
   };
 
   const handlePlaceOrder = async () => {
-    if (!profile || cart.length === 0) return;
+    if (!profile || cart.length === 0 || isClosed) return;
     setPlacingOrder(true);
     try {
+      const user = await getUserProfile(profile.userId);
+      const buyerAddress = user?.address || 'No delivery address provided';
+
       const totalPrice = cart.reduce((sum, item) => {
         const choicesTotal = item.selectedChoices?.reduce((cSum, c) => cSum + c.price, 0) || 0;
         return sum + ((item.product.price + choicesTotal) * item.quantity);
@@ -124,6 +141,7 @@ export default function ShopDashboard() {
         groupId: namespace || 'direct',
         buyerId: profile.userId,
         buyerName: profile.displayName,
+        buyerAddress,
         items: cart,
         totalPrice
       };
@@ -177,10 +195,13 @@ export default function ShopDashboard() {
       </button>
 
       {/* Shop Header */}
-      <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
+      <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', opacity: isClosed ? 0.7 : 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1 className="page-title">{shop.name}</h1>
+            <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {shop.name}
+              {isClosed && <span style={{ fontSize: '0.8rem', background: '#999', color: 'white', padding: '4px 8px', borderRadius: '4px' }}>CLOSED</span>}
+            </h1>
             {marketName && (
               <div style={{ display: 'inline-block', background: 'rgba(123, 97, 255, 0.1)', color: 'var(--secondary-color)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, marginTop: '4px' }}>
                 📍 {marketName}
@@ -193,6 +214,26 @@ export default function ShopDashboard() {
           </div>
           {isOwner && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button 
+                onClick={handleToggleShopStatus}
+                style={{ 
+                  background: isClosed ? 'var(--primary-color)' : 'rgba(255, 107, 107, 0.1)', 
+                  color: isClosed ? 'white' : 'var(--accent-color)', 
+                  border: isClosed ? 'none' : '1px solid rgba(255,107,107,0.3)', 
+                  padding: '6px 12px', 
+                  borderRadius: '99px', 
+                  fontSize: '0.9rem', 
+                  fontWeight: 600 
+                }}
+              >
+                {isClosed ? 'Open Shop' : 'Close Shop'}
+              </button>
+              <button 
+                style={{ background: 'var(--secondary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600 }}
+                onClick={() => setShowAdsModal(true)}
+              >
+                สร้าง Ads
+              </button>
               <button 
                 className="btn-secondary" 
                 style={{ padding: '6px 12px', fontSize: '0.9rem' }}
@@ -256,11 +297,12 @@ export default function ShopDashboard() {
                   backgroundSize: 'cover', 
                   backgroundPosition: 'center',
                   borderRadius: '8px',
-                  marginBottom: '12px'
+                  marginBottom: '12px',
+                  filter: isClosed ? 'grayscale(100%)' : 'none'
                 }} 
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                <h3 style={{ fontSize: '1rem' }}>{product.name}</h3>
+                <h3 style={{ fontSize: '1rem', color: isClosed ? '#999' : 'inherit' }}>{product.name}</h3>
                 {isOwner && (
                   <button 
                     style={{ background: 'var(--background-white)', border: '1px solid #ddd', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}
@@ -273,7 +315,7 @@ export default function ShopDashboard() {
                   </button>
                 )}
               </div>
-              <p style={{ fontWeight: 600, color: 'var(--primary-color)' }}>฿{product.price}</p>
+              <p style={{ fontWeight: 600, color: isClosed ? '#999' : 'var(--primary-color)' }}>฿{product.price}</p>
             </div>
           ))}
         </div>
@@ -294,6 +336,10 @@ export default function ShopDashboard() {
                   {order.status === 'pending' && (
                     <span style={{ background: '#FFC107', color: 'black', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{t('waiting_confirm')}</span>
                   )}
+                </div>
+
+                <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '8px', fontSize: '0.9rem' }}>
+                  <strong>📍 Delivery Address:</strong> {order.buyerAddress || 'No address provided'}
                 </div>
                 
                 <div style={{ marginBottom: '16px' }}>
@@ -368,67 +414,75 @@ export default function ShopDashboard() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div className="glass-panel animate-slide-up" style={{ width: '100%', maxWidth: '400px', background: 'white', overflow: 'hidden', borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
             <div 
-              style={{ width: '100%', height: '250px', backgroundImage: `url(${selectedProduct.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} 
+              style={{ width: '100%', height: '250px', backgroundImage: `url(${selectedProduct.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: isClosed ? 'grayscale(100%)' : 'none' }} 
             />
             <div style={{ padding: '24px', maxHeight: '50vh', overflowY: 'auto' }}>
               <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{selectedProduct.name}</h2>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>{selectedProduct.description}</p>
               
-              {selectedProduct.choices && selectedProduct.choices.length > 0 && (
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '12px' }}>
-                    {selectedProduct.choiceType === 'single' ? t('select_choice') : t('select_add_on')}
-                  </label>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {selectedProduct.choices.map((c, i) => {
-                      const choiceName = typeof c === 'string' ? c : c.name;
-                      const choicePrice = typeof c === 'string' ? 0 : (c.price || 0);
-                      const isChecked = selectedChoices.some(sc => sc.name === choiceName);
+              {isClosed ? (
+                <div style={{ padding: '16px', background: '#ffebee', color: '#c62828', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold', marginBottom: '24px' }}>
+                  This shop is currently closed. You cannot place orders.
+                </div>
+              ) : (
+                <>
+                  {selectedProduct.choices && selectedProduct.choices.length > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <label style={{ display: 'block', fontWeight: 600, marginBottom: '12px' }}>
+                        {selectedProduct.choiceType === 'single' ? t('select_choice') : t('select_add_on')}
+                      </label>
                       
-                      return (
-                        <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', border: '1px solid #eee', borderRadius: '8px', cursor: 'pointer', background: isChecked ? 'rgba(123, 97, 255, 0.05)' : 'white' }}>
-                          <input 
-                            type={selectedProduct.choiceType === 'single' ? "radio" : "checkbox"} 
-                            name="product_choice"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              const choiceObj = { name: choiceName, price: choicePrice };
-                              if (selectedProduct.choiceType === 'single') {
-                                setSelectedChoices([choiceObj]);
-                              } else {
-                                if (e.target.checked) {
-                                  setSelectedChoices([...selectedChoices, choiceObj]);
-                                } else {
-                                  setSelectedChoices(selectedChoices.filter(sc => sc.name !== choiceName));
-                                }
-                              }
-                            }}
-                            style={{ width: '20px', height: '20px', accentColor: 'var(--primary-color)' }}
-                          />
-                          <div style={{ flex: 1 }}>{choiceName}</div>
-                          {choicePrice > 0 && <div style={{ fontWeight: 600, color: 'var(--primary-color)' }}>+฿{choicePrice}</div>}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {selectedProduct.choices.map((c, i) => {
+                          const choiceName = typeof c === 'string' ? c : c.name;
+                          const choicePrice = typeof c === 'string' ? 0 : (c.price || 0);
+                          const isChecked = selectedChoices.some(sc => sc.name === choiceName);
+                          
+                          return (
+                            <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', border: '1px solid #eee', borderRadius: '8px', cursor: 'pointer', background: isChecked ? 'rgba(123, 97, 255, 0.05)' : 'white' }}>
+                              <input 
+                                type={selectedProduct.choiceType === 'single' ? "radio" : "checkbox"} 
+                                name="product_choice"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const choiceObj = { name: choiceName, price: choicePrice };
+                                  if (selectedProduct.choiceType === 'single') {
+                                    setSelectedChoices([choiceObj]);
+                                  } else {
+                                    if (e.target.checked) {
+                                      setSelectedChoices([...selectedChoices, choiceObj]);
+                                    } else {
+                                      setSelectedChoices(selectedChoices.filter(sc => sc.name !== choiceName));
+                                    }
+                                  }
+                                }}
+                                style={{ width: '20px', height: '20px', accentColor: 'var(--primary-color)' }}
+                              />
+                              <div style={{ flex: 1 }}>{choiceName}</div>
+                              {choicePrice > 0 && <div style={{ fontWeight: 600, color: 'var(--primary-color)' }}>+฿{choicePrice}</div>}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <span style={{ fontWeight: 600 }}>{t('quantity')}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <button 
-                    style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#eee', fontWeight: 'bold' }}
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  >-</button>
-                  <span style={{ fontSize: '1.25rem', fontWeight: 600 }}>{quantity}</span>
-                  <button 
-                    style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#eee', fontWeight: 'bold' }}
-                    onClick={() => setQuantity(q => q + 1)}
-                  >+</button>
-                </div>
-              </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                    <span style={{ fontWeight: 600 }}>{t('quantity')}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <button 
+                        style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#eee', fontWeight: 'bold' }}
+                        onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      >-</button>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 600 }}>{quantity}</span>
+                      <button 
+                        style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#eee', fontWeight: 'bold' }}
+                        onClick={() => setQuantity(q => q + 1)}
+                      >+</button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button 
@@ -437,14 +491,52 @@ export default function ShopDashboard() {
                 >
                   {t('cancel')}
                 </button>
-                <button 
-                  className="btn-primary" 
-                  style={{ flex: 2, padding: '16px', borderRadius: '12px' }}
-                  onClick={handleAddToCart}
-                >
-                  {t('add_to_cart')} • ฿{getProductPriceWithChoices() * quantity}
-                </button>
+                {!isClosed && (
+                  <button 
+                    className="btn-primary" 
+                    style={{ flex: 2, padding: '16px', borderRadius: '12px' }}
+                    onClick={handleAddToCart}
+                  >
+                    {t('add_to_cart')} • ฿{getProductPriceWithChoices() * quantity}
+                  </button>
+                )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ads Modal (Owner) */}
+      {showAdsModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '24px' }}>
+            <h2 style={{ marginBottom: '16px', color: 'var(--primary-color)' }}>สร้าง Ads (Create Ads)</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.95rem' }}>
+              Copy the text below and send it to the LINE Bot to generate an ad for your shop with a direct link.
+            </p>
+            
+            <div style={{ padding: '16px', background: '#f5f5f5', borderRadius: '8px', border: '1px dashed #ccc', marginBottom: '24px', fontFamily: 'monospace', fontSize: '1.1rem' }}>
+              /market ads {shop.name}
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="btn-secondary"
+                style={{ flex: 1, padding: '12px', borderRadius: '8px' }}
+                onClick={() => setShowAdsModal(false)}
+              >
+                Close
+              </button>
+              <button 
+                className="btn-primary" 
+                style={{ flex: 1, padding: '12px', borderRadius: '8px' }}
+                onClick={() => {
+                  navigator.clipboard.writeText(`/market ads ${shop.name}`);
+                  alert('Copied to clipboard!');
+                }}
+              >
+                Copy Text
+              </button>
             </div>
           </div>
         </div>
@@ -497,7 +589,7 @@ export default function ShopDashboard() {
       )}
 
       {/* Floating Cart Button (Buyer) */}
-      {!isOwner && cart.length > 0 && !selectedProduct && (
+      {!isOwner && cart.length > 0 && !selectedProduct && !isClosed && (
         <div 
           className="animate-slide-up"
           style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 90 }}

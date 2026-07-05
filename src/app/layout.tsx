@@ -4,6 +4,10 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Group Marketplace',
   description: 'A LINE Mini App for Group Commerce',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  }
 };
 
 import { LiffProvider } from '@/components/LiffProvider';
