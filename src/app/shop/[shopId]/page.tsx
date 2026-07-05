@@ -319,7 +319,7 @@ export default function ShopDashboard() {
                   </button>
                 </div>
                 <div style={{ fontSize: '0.8rem', color: isPastDue ? '#c62828' : 'var(--text-secondary)' }}>
-                  Fees: {maintenanceFee} coins / {Math.max(0, daysUntilDue)} days
+                  Fees: {maintenanceFee} coins / {Math.max(0, daysUntilDue)} days ({new Date(dueDateMillis).toLocaleDateString('th-TH')})
                 </div>
               </div>
               
