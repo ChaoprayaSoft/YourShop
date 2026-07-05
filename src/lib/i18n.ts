@@ -115,6 +115,15 @@ export const translations: TranslationDictionary = {
   shops: { en: 'Shops', th: 'ร้าน' },
   delete: { en: 'Delete', th: 'ลบ' },
 
+  // My Orders & Cancellations
+  my_orders: { en: 'My Orders', th: 'ออเดอร์ของฉัน' },
+  my_orders_desc: { en: 'View your order history', th: 'ดูประวัติการสั่งซื้อของคุณ' },
+  cancel_order: { en: 'Cancel Order', th: 'ยกเลิกออเดอร์' },
+  confirm_cancel: { en: 'Are you sure you want to cancel this order?', th: 'คุณแน่ใจหรือไม่ว่าต้องการยกเลิกออเดอร์นี้?' },
+  order_canceled: { en: 'Canceled', th: 'ยกเลิกแล้ว' },
+  cancel_success: { en: 'Order canceled successfully.', th: 'ยกเลิกออเดอร์สำเร็จ' },
+  cancel_error: { en: 'Failed to cancel order.', th: 'ไม่สามารถยกเลิกออเดอร์ได้' },
+
   // Add/Edit Product & Create Shop
   create_shop_title: { en: 'Create Your Shop', th: 'สร้างร้านค้าของคุณ' },
   create_shop_subtitle: { en: 'Fill in the details below to start selling', th: 'กรอกรายละเอียดด้านล่างเพื่อเริ่มขายสินค้า' },

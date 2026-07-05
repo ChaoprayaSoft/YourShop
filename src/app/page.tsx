@@ -100,15 +100,33 @@ export default function Home() {
       {/* Main Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         
-        {/* Buyer Section */}
-        <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => router.push('/marketplace')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Buyer Navigation */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div 
+            className="glass-panel hover-card" 
+            style={{ padding: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px' }}
+            onClick={() => router.push('/marketplace')}
+          >
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(123, 97, 255, 0.1)', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
               🛍️
             </div>
             <div>
               <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{t('explore_shops')}</h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{t('explore_desc')}</p>
+            </div>
+          </div>
+
+          <div 
+            className="glass-panel hover-card" 
+            style={{ padding: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px' }}
+            onClick={() => router.push('/my-orders')}
+          >
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(56, 218, 114, 0.1)', color: '#4CAF50', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
+              📦
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{t('my_orders')}</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{t('my_orders_desc')}</p>
             </div>
           </div>
         </div>

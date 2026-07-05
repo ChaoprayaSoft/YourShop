@@ -33,6 +33,9 @@ export async function POST(req: Request) {
     } else if (type === 'completed' && order) {
       subject = `[YourShop] ออเดอร์ของคุณเสร็จสมบูรณ์แล้ว!`;
       text = `ออเดอร์ยอด ฿${order.totalPrice} ของคุณเสร็จสมบูรณ์แล้ว ขอบคุณที่ใช้บริการ!`;
+    } else if (type === 'canceled' && order) {
+      subject = `🚫 [YourShop] ออเดอร์ถูกยกเลิก (Order Canceled)`;
+      text = `ลูกค้า ${order.buyerName} ได้ยกเลิกออเดอร์ยอด ฿${order.totalPrice} แล้ว (Customer canceled this order).`;
     } else if (type === 'banned') {
       subject = `⚠️ Your shop has been suspended / ร้านค้าของคุณถูกระงับ`;
       const shopName = body.shopName || 'Your Shop';

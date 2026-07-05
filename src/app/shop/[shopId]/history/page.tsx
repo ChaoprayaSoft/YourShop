@@ -35,7 +35,7 @@ export default function ShopHistoryPage() {
 
   if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
 
-  const historyOrders = orders.filter(o => o.status === 'completed' || o.status === 'rejected');
+  const historyOrders = orders.filter(o => o.status === 'completed' || o.status === 'rejected' || o.status === 'canceled');
   
   // Sort by created at descending if available, else just display
   historyOrders.sort((a, b) => {
@@ -74,6 +74,9 @@ export default function ShopHistoryPage() {
                 )}
                 {order.status === 'rejected' && (
                   <span style={{ background: 'var(--accent-color)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{t('rejected')}</span>
+                )}
+                {order.status === 'canceled' && (
+                  <span style={{ background: '#999', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{t('order_canceled')}</span>
                 )}
               </div>
               

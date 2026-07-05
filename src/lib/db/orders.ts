@@ -11,7 +11,7 @@ export type Order = {
   buyerAddress?: string;
   items: { product: Product; quantity: number; selectedChoices?: { name: string; price: number }[] }[];
   totalPrice: number;
-  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'canceled';
   rejectReason?: string;
   createdAt: any;
 };
@@ -30,6 +30,12 @@ export async function placeOrder(orderData: Omit<Order, 'id' | 'status' | 'creat
 
 export async function getShopOrders(shopId: string): Promise<Order[]> {
   const ordersQuery = query(collection(db, 'orders'), where('shopId', '==', shopId));
+  const snap = await getDocs(ordersQuery);
+  return snap.docs.map(doc => doc.data() as Order);
+}
+
+export async function getBuyerOrders(buyerId: string): Promise<Order[]> {
+  const ordersQuery = query(collection(db, 'orders'), where('buyerId', '==', buyerId));
   const snap = await getDocs(ordersQuery);
   return snap.docs.map(doc => doc.data() as Order);
 }
