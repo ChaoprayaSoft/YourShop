@@ -117,7 +117,7 @@ export default function EditProductPage() {
         price: parseFloat(price),
         imageUrl,
         choiceType,
-        choices: validChoices.length > 0 ? validChoices : undefined
+        choices: validChoices
       });
 
       router.push(`/shop/${shopId}`);
