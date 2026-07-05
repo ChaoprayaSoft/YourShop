@@ -36,7 +36,6 @@ export default function CreateShopPage() {
         id: profile.userId,
         name,
         description,
-        ownerId: profile.userId,
         ownerName: profile.displayName,
         ownerPictureUrl: profile.pictureUrl,
         marketId: user.marketId
