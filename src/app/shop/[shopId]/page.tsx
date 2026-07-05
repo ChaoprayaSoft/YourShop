@@ -84,26 +84,14 @@ export default function ShopDashboard() {
     };
   }, [shopId]);
 
-  if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
-
-  if (!shop) {
-    return (
-      <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', marginTop: '20vh' }}>
-        <h2>{t('shop_not_found')}</h2>
-        <button className="btn-primary" onClick={() => router.push('/')} style={{ marginTop: '16px' }}>{t('go_home')}</button>
-      </div>
-    );
-  }
-
   const isOwner = profile?.userId === shopId;
-  const isClosed = shop.isOpen === false;
+  const isClosed = shop?.isOpen === false;
   
   const completedOrdersCount = Array.isArray(orders) ? orders.filter(o => o?.status === 'completed').length : 0;
   const maintenanceFee = completedOrdersCount >= 5 ? 2 : 5;
   
   const getDueDateMillis = () => {
-    if (!shop.maintenanceFeeDueDate) {
-      // Give old shops 30 days by default to prevent instant auto-close
+    if (!shop || !shop.maintenanceFeeDueDate) {
       return Date.now() + 30 * 24 * 60 * 60 * 1000;
     }
     if (typeof shop.maintenanceFeeDueDate.toMillis === 'function') {
@@ -121,6 +109,29 @@ export default function ShopDashboard() {
   const dueDateMillis = getDueDateMillis();
   const daysUntilDue = Math.ceil((dueDateMillis - Date.now()) / (1000 * 60 * 60 * 24));
   const isPastDue = daysUntilDue <= 0;
+
+  useEffect(() => {
+    // Auto-close if past due
+    if (isOwner && shop && shop.isOpen && isPastDue) {
+      updateShop(shopId, { isOpen: false }).then(() => {
+        setShop(prev => prev ? { ...prev, isOpen: false } : prev);
+        alert('ร้านค้าถูกปิดอัตโนมัติเนื่องจากเกินกำหนดชำระค่าบำรุงรักษา (Shop was automatically closed due to past due maintenance fee)');
+      }).catch(console.error);
+    }
+  }, [isOwner, shop, isPastDue, shopId]);
+
+  if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
+
+  if (!shop) {
+    return (
+      <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', marginTop: '20vh' }}>
+        <h2>{t('shop_not_found')}</h2>
+        <button className="btn-primary" onClick={() => router.push('/')} style={{ marginTop: '16px' }}>{t('go_home')}</button>
+      </div>
+    );
+  }
+
+  // --- Functions ---
 
   // --- Functions ---
   const handleToggleShopStatus = async () => {
@@ -168,16 +179,6 @@ export default function ShopDashboard() {
       alert(t('error'));
     }
   };
-
-  useEffect(() => {
-    // Auto-close if past due
-    if (isOwner && shop && shop.isOpen && isPastDue) {
-      updateShop(shopId, { isOpen: false }).then(() => {
-        setShop(prev => prev ? { ...prev, isOpen: false } : prev);
-        alert('ร้านค้าถูกปิดอัตโนมัติเนื่องจากเกินกำหนดชำระค่าบำรุงรักษา (Shop was automatically closed due to past due maintenance fee)');
-      }).catch(console.error);
-    }
-  }, [isOwner, shop, isPastDue, shopId]);
 
   const sendNotification = async (order: Order, type: 'placed' | 'accepted' | 'rejected' | 'completed') => {
     try {
