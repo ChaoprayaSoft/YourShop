@@ -307,27 +307,29 @@ export default function ShopDashboard() {
             </div>
           </div>
           {isOwner && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>🪙 {ownerProfile?.coins || 0} Coins</span>
-                <button 
-                  style={{ background: 'var(--primary-color)', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600, border: 'none' }}
-                  onClick={() => setShowTopUpModal(true)}
-                >
-                  Top Up
-                </button>
-              </div>
-              <div style={{ fontSize: '0.8rem', color: isPastDue ? '#c62828' : 'var(--text-secondary)', marginBottom: '8px' }}>
-                Shop fees {maintenanceFee} coins in {Math.max(0, daysUntilDue)} days
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', width: '100%', marginTop: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>🪙 {ownerProfile?.coins || 0} Coins</span>
+                  <button 
+                    style={{ background: 'var(--primary-color)', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600, border: 'none' }}
+                    onClick={() => setShowTopUpModal(true)}
+                  >
+                    Top Up
+                  </button>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: isPastDue ? '#c62828' : 'var(--text-secondary)' }}>
+                  Fees: {maintenanceFee} coins / {Math.max(0, daysUntilDue)} days
+                </div>
               </div>
               
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'flex-end', width: '100%' }}>
                 {isPastDue ? (
                   <button 
-                    style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600 }}
+                    style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.85rem', fontWeight: 600 }}
                     onClick={handlePayMaintenanceFee}
                   >
-                    Pay Maintenance Fee
+                    Pay Fee
                   </button>
                 ) : (
                   <button 
@@ -338,33 +340,33 @@ export default function ShopDashboard() {
                       border: isClosed ? 'none' : '1px solid rgba(255,107,107,0.3)', 
                       padding: '6px 12px', 
                       borderRadius: '99px', 
-                      fontSize: '0.9rem', 
+                      fontSize: '0.85rem', 
                       fontWeight: 600 
                     }}
                   >
-                    {isClosed ? 'Open Shop' : 'Close Shop'}
+                    {isClosed ? 'Open' : 'Close'}
                   </button>
                 )}
+                <button 
+                  style={{ background: 'var(--secondary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.85rem', fontWeight: 600 }}
+                  onClick={() => setShowAdsModal(true)}
+                >
+                  Ads
+                </button>
+                <button 
+                  className="btn-secondary" 
+                  style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                  onClick={() => router.push(`/shop/${shopId}/edit`)}
+                >
+                  Edit
+                </button>
+                <button 
+                  style={{ background: 'var(--background-white)', color: 'var(--text-primary)', border: '1px solid #ddd', padding: '6px 12px', borderRadius: '99px', fontSize: '0.85rem', fontWeight: 600 }}
+                  onClick={() => router.push(`/shop/${shopId}/history`)}
+                >
+                  History
+                </button>
               </div>
-              <button 
-                style={{ background: 'var(--secondary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600 }}
-                onClick={() => setShowAdsModal(true)}
-              >
-                สร้าง Ads
-              </button>
-              <button 
-                className="btn-secondary" 
-                style={{ padding: '6px 12px', fontSize: '0.9rem' }}
-                onClick={() => router.push(`/shop/${shopId}/edit`)}
-              >
-                {t('edit_shop')}
-              </button>
-              <button 
-                style={{ background: 'var(--background-white)', color: 'var(--text-primary)', border: '1px solid #ddd', padding: '6px 12px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600 }}
-                onClick={() => router.push(`/shop/${shopId}/history`)}
-              >
-                {t('history')}
-              </button>
             </div>
           )}
         </div>
@@ -374,10 +376,23 @@ export default function ShopDashboard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '1.25rem' }}>{t('all_products')} ({products.length}/{shop.productSlots || 2})</h2>
         {isOwner && (
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+            <button 
+              className="btn-primary" 
+              style={{ padding: '8px 16px', fontSize: '0.9rem', opacity: products.length >= (shop.productSlots || 2) ? 0.5 : 1, width: '120px' }}
+              onClick={() => {
+                if (products.length >= (shop.productSlots || 2)) {
+                  alert('ช่องสินค้าเต็ม กรุณาซื้อช่องสินค้าเพิ่ม (Product slots full, please buy more slots)');
+                  return;
+                }
+                router.push(`/shop/${shopId}/add-product`);
+              }}
+            >
+              {t('add_product')}
+            </button>
             <button 
               className="btn-secondary" 
-              style={{ padding: '8px 16px', fontSize: '0.9rem', border: '1px solid var(--primary-color)', color: 'var(--primary-color)' }}
+              style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', width: '120px' }}
               onClick={async () => {
                 if ((ownerProfile?.coins || 0) < 5) {
                   alert('เหรียญไม่พอ กรุณาเติมเหรียญ (Not enough coins)');
@@ -398,19 +413,6 @@ export default function ShopDashboard() {
               }}
             >
               Buy Slot
-            </button>
-            <button 
-              className="btn-primary" 
-              style={{ padding: '8px 16px', fontSize: '0.9rem', opacity: products.length >= (shop.productSlots || 2) ? 0.5 : 1 }}
-              onClick={() => {
-                if (products.length >= (shop.productSlots || 2)) {
-                  alert('ช่องสินค้าเต็ม กรุณาซื้อช่องสินค้าเพิ่ม (Product slots full, please buy more slots)');
-                  return;
-                }
-                router.push(`/shop/${shopId}/add-product`);
-              }}
-            >
-              {t('add_product')}
             </button>
           </div>
         )}
@@ -733,8 +735,16 @@ export default function ShopDashboard() {
                       transferTime
                     });
                     
-                    // Send Email to Admin
-                    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@yourshop.com';
+                    // Send Email to Admin (fetch their profile to get actual email)
+                    const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+                    let adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@yourshop.com';
+                    if (adminUserId) {
+                      const adminProfile = await getUserProfile(adminUserId);
+                      if (adminProfile?.email) {
+                        adminEmail = adminProfile.email;
+                      }
+                    }
+                    
                     await fetch('/api/notify', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
