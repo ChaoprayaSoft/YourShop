@@ -40,3 +40,9 @@ export async function getShopsInMarket(marketId: string): Promise<Shop[]> {
   const snap = await getDocs(shopsQuery);
   return snap.docs.map(doc => doc.data() as Shop);
 }
+
+import { deleteDoc } from 'firebase/firestore';
+export async function deleteShop(shopId: string) {
+  const shopRef = doc(db, 'shops', shopId);
+  await deleteDoc(shopRef);
+}

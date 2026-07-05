@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Shop } from '@/lib/db/shops';
+import { Shop, deleteShop } from '@/lib/db/shops';
+import { Market, getAllMarkets } from '@/lib/db/markets';
 import { useLiff } from '@/components/LiffProvider';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -15,14 +16,20 @@ export default function AdminShopsPage() {
   const { t } = useLanguage();
   
   const [shops, setShops] = useState<Shop[]>([]);
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [selectedMarketId, setSelectedMarketId] = useState<string>('ALL');
   const [loading, setLoading] = useState(true);
 
-  const fetchShops = async () => {
+  const fetchData = async () => {
     try {
-      const shopsSnap = await getDocs(collection(db, 'shops'));
+      const [shopsSnap, marketsData] = await Promise.all([
+        getDocs(collection(db, 'shops')),
+        getAllMarkets()
+      ]);
       setShops(shopsSnap.docs.map(d => d.data() as Shop));
+      setMarkets(marketsData);
     } catch (error) {
-      console.error('Failed to fetch shops', error);
+      console.error('Failed to fetch data', error);
     } finally {
       setLoading(false);
     }
@@ -34,10 +41,11 @@ export default function AdminShopsPage() {
       router.push('/');
       return;
     }
-    if (profile) fetchShops();
+    if (profile) fetchData();
   }, [profile, router]);
 
-  const handleBanShop = async (shop: Shop) => {
+  const handleBanShop = async (e: React.MouseEvent, shop: Shop) => {
+    e.stopPropagation(); // Prevent row click
     const isBanned = shop.isBanned || false;
     const action = isBanned ? 'Unban' : 'Ban';
     if (!confirm(`Are you sure you want to ${action} this shop?`)) return;
@@ -70,8 +78,25 @@ export default function AdminShopsPage() {
     }
   };
 
+  const handleRemoveShop = async (e: React.MouseEvent, shop: Shop) => {
+    e.stopPropagation(); // Prevent row click
+    if (!confirm(`Are you sure you want to completely DELETE this shop? This cannot be undone.`)) return;
+
+    try {
+      await deleteShop(shop.id);
+      setShops(prev => prev.filter(s => s.id !== shop.id));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete shop');
+    }
+  };
+
   if (!profile || profile.userId !== process.env.NEXT_PUBLIC_ADMIN_USER_ID) return null;
   if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
+
+  const filteredShops = selectedMarketId === 'ALL' 
+    ? shops 
+    : shops.filter(shop => shop.marketId === selectedMarketId);
 
   return (
     <div className="animate-fade-in" style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', paddingBottom: '80px' }}>
@@ -82,46 +107,75 @@ export default function AdminShopsPage() {
         ← {t('back')}
       </button>
 
-      <h1 className="page-title" style={{ marginBottom: '24px' }}>{t('all_shops')}</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 className="page-title" style={{ margin: 0 }}>{t('all_shops')}</h1>
+        <select 
+          className="input-field" 
+          style={{ width: 'auto', padding: '8px 12px' }}
+          value={selectedMarketId}
+          onChange={e => setSelectedMarketId(e.target.value)}
+        >
+          <option value="ALL">All Markets</option>
+          {markets.map(m => (
+            <option key={m.id} value={m.id}>{m.name}</option>
+          ))}
+        </select>
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
-        {shops.map(shop => (
-          <div key={shop.id} className="glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: shop.isBanned ? 0.6 : 1 }}>
-            <div>
-              <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {shop.name}
-                {shop.isBanned && <span style={{ fontSize: '0.75rem', background: 'var(--accent-color)', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>BANNED</span>}
+        {filteredShops.map(shop => {
+          const marketName = markets.find(m => m.id === shop.marketId)?.name || 'Unknown Market';
+          return (
+            <div 
+              key={shop.id} 
+              className="glass-panel" 
+              style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: shop.isBanned ? 0.6 : 1, cursor: 'pointer' }}
+              onClick={() => router.push(`/shop/${shop.id}`)}
+            >
+              <div>
+                <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {shop.name}
+                  {shop.isBanned && <span style={{ fontSize: '0.75rem', background: 'var(--accent-color)', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>BANNED</span>}
+                  {shop.isOpen === false && <span style={{ fontSize: '0.75rem', background: '#999', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>CLOSED</span>}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px' }}>
+                  {t('owner')}: {shop.ownerName} | 📍 {marketName}
+                </div>
               </div>
-              <div style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px' }}>
-                {t('owner')}: {shop.ownerName} | Market ID: {shop.marketId ? shop.marketId.substring(0,8) : 'N/A'}...
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button 
+                  onClick={(e) => handleBanShop(e, shop)}
+                  style={{ 
+                    padding: '4px 12px', 
+                    fontSize: '0.8rem', 
+                    background: shop.isBanned ? '#eee' : 'rgba(255,107,107,0.1)', 
+                    color: shop.isBanned ? '#666' : 'var(--accent-color)', 
+                    border: `1px solid ${shop.isBanned ? '#ccc' : 'rgba(255,107,107,0.3)'}`, 
+                    borderRadius: '8px', 
+                    fontWeight: 600 
+                  }}
+                >
+                  {shop.isBanned ? 'Unban' : 'Ban'}
+                </button>
+                <button 
+                  onClick={(e) => handleRemoveShop(e, shop)}
+                  style={{ 
+                    padding: '4px 12px', 
+                    fontSize: '0.8rem', 
+                    background: 'var(--accent-color)', 
+                    color: 'white', 
+                    border: 'none',
+                    borderRadius: '8px', 
+                    fontWeight: 600 
+                  }}
+                >
+                  Remove
+                </button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                className="btn-secondary"
-                onClick={() => router.push(`/shop/${shop.id}`)}
-                style={{ padding: '4px 12px', fontSize: '0.8rem' }}
-              >
-                ดูร้านค้า
-              </button>
-              <button 
-                onClick={() => handleBanShop(shop)}
-                style={{ 
-                  padding: '4px 12px', 
-                  fontSize: '0.8rem', 
-                  background: shop.isBanned ? '#eee' : 'rgba(255,107,107,0.1)', 
-                  color: shop.isBanned ? '#666' : 'var(--accent-color)', 
-                  border: `1px solid ${shop.isBanned ? '#ccc' : 'rgba(255,107,107,0.3)'}`, 
-                  borderRadius: '8px', 
-                  fontWeight: 600 
-                }}
-              >
-                {shop.isBanned ? 'Unban' : 'Ban'}
-              </button>
-            </div>
-          </div>
-        ))}
-        {shops.length === 0 && <div style={{ color: '#999' }}>{t('shop_not_found')}</div>}
+          );
+        })}
+        {filteredShops.length === 0 && <div style={{ color: '#999' }}>{t('shop_not_found')}</div>}
       </div>
     </div>
   );
