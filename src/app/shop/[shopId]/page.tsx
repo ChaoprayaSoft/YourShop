@@ -98,9 +98,27 @@ export default function ShopDashboard() {
   const isOwner = profile?.userId === shopId;
   const isClosed = shop.isOpen === false;
   
-  const completedOrdersCount = orders.filter(o => o.status === 'completed').length;
+  const completedOrdersCount = Array.isArray(orders) ? orders.filter(o => o?.status === 'completed').length : 0;
   const maintenanceFee = completedOrdersCount >= 5 ? 2 : 5;
-  const dueDateMillis = shop.maintenanceFeeDueDate?.toMillis ? shop.maintenanceFeeDueDate.toMillis() : Date.now();
+  
+  const getDueDateMillis = () => {
+    if (!shop.maintenanceFeeDueDate) {
+      // Give old shops 30 days by default to prevent instant auto-close
+      return Date.now() + 30 * 24 * 60 * 60 * 1000;
+    }
+    if (typeof shop.maintenanceFeeDueDate.toMillis === 'function') {
+      return shop.maintenanceFeeDueDate.toMillis();
+    }
+    if (typeof shop.maintenanceFeeDueDate.getTime === 'function') {
+      return shop.maintenanceFeeDueDate.getTime();
+    }
+    if (typeof shop.maintenanceFeeDueDate === 'number') {
+      return shop.maintenanceFeeDueDate;
+    }
+    return Date.now();
+  };
+  
+  const dueDateMillis = getDueDateMillis();
   const daysUntilDue = Math.ceil((dueDateMillis - Date.now()) / (1000 * 60 * 60 * 24));
   const isPastDue = daysUntilDue <= 0;
 
