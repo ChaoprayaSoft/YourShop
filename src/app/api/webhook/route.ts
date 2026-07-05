@@ -11,7 +11,7 @@ const client = new messagingApi.MessagingApiClient({
 
 // GET endpoint so you can test the webhook is reachable in your browser
 export async function GET() {
-  return NextResponse.json({ 
+  return NextResponse.json({
     status: 'Webhook is alive!',
     hasToken: !!process.env.LINE_CHANNEL_ACCESS_TOKEN,
     hasLiffId: !!process.env.NEXT_PUBLIC_LIFF_ID,
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   try {
     rawBody = await req.text();
     console.log('Webhook received:', rawBody);
-    
+
     const body = JSON.parse(rawBody);
     const events = body.events;
 
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
     for (const event of events) {
       console.log('Processing event:', JSON.stringify(event));
-      
+
       if (event.type !== 'message' || event.message.type !== 'text') {
         console.log('Skipping non-text event');
         continue;
@@ -43,9 +43,9 @@ export async function POST(req: Request) {
 
       const text = event.message.text.trim();
       const groupId = event.source.groupId || event.source.roomId;
-      
+
       console.log(`Text: "${text}", GroupId: ${groupId}, Source type: ${event.source.type}`);
-      
+
       if (!groupId) {
         console.log('No groupId found, skipping');
         continue;
@@ -53,13 +53,13 @@ export async function POST(req: Request) {
 
       const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
       const magicLink = `https://liff.line.me/${liffId}?marketId=${groupId}`;
-      
+
       const normalizedText = text.toLowerCase();
 
       if (normalizedText.startsWith('/market create ')) {
         const prefixLength = '/market create '.length;
         const marketName = text.substring(prefixLength).trim();
-        
+
         if (!marketName) {
           await client.replyMessage({
             replyToken: event.replyToken,
@@ -69,13 +69,13 @@ export async function POST(req: Request) {
         }
 
         console.log(`Creating market "${marketName}" for group ${groupId}`);
-        
+
         // Reply FIRST before Firebase (reply token expires quickly)
         await client.replyMessage({
           replyToken: event.replyToken,
-          messages: [{ 
-            type: 'text', 
-            text: `สร้างตลาด '${marketName}' สำเร็จแล้ว!\n\nคลิกที่ลิงก์นี้เพื่อเข้าสู่ตลาดและเพิ่มร้านค้าของคุณ:\n${magicLink}` 
+          messages: [{
+            type: 'text',
+            text: `สร้างตลาด '${marketName}' สำเร็จแล้ว!\n\nคลิกที่ลิงก์นี้เพื่อเข้าสู่ตลาดและเพิ่มร้านค้าของคุณ:\n${magicLink}`
           }]
         });
 
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
       } else if (normalizedText.startsWith('/market ads ')) {
         const prefixLength = '/market ads '.length;
         const shopName = text.substring(prefixLength).trim();
-        
+
         if (!shopName) {
           await client.replyMessage({
             replyToken: event.replyToken,
@@ -94,12 +94,12 @@ export async function POST(req: Request) {
           });
           continue;
         }
-        
+
         // Find shop by name in this market
         const shopsRef = collection(db, 'shops');
         const q = query(shopsRef, where('marketId', '==', groupId), where('name', '==', shopName));
         const shopsSnap = await getDocs(q);
-        
+
         if (shopsSnap.empty) {
           await client.replyMessage({
             replyToken: event.replyToken,
@@ -111,12 +111,12 @@ export async function POST(req: Request) {
         const shopData = shopsSnap.docs[0].data();
         const adMessage = shopData.adMessage || `ร้าน ${shopName} ยินดีให้บริการ!`;
         const shopLink = `https://liff.line.me/${liffId}?shopId=${shopData.id}&marketId=${groupId}`;
-        
+
         await client.replyMessage({
           replyToken: event.replyToken,
-          messages: [{ 
-            type: 'text', 
-            text: `${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}` 
+          messages: [{
+            type: 'text',
+            text: `ร้าน ${shopName} พร้อมให้บริการแล้วค่ะ/ครับ!\n${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}`
           }]
         });
 
@@ -124,9 +124,9 @@ export async function POST(req: Request) {
         const baseMagicLink = `https://liff.line.me/${liffId}?marketId=${groupId}`;
         await client.replyMessage({
           replyToken: event.replyToken,
-          messages: [{ 
-            type: 'text', 
-            text: `คลิกที่นี่เพื่อเข้าสู่ตลาด:\n${baseMagicLink}` 
+          messages: [{
+            type: 'text',
+            text: `คลิกที่นี่เพื่อเข้าสู่ตลาด:\n${baseMagicLink}`
           }]
         });
       }

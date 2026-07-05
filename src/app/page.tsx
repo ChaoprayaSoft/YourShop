@@ -12,6 +12,20 @@ export default function Home() {
   const router = useRouter();
   const { t, lang, setLang } = useLanguage();
   
+  const promptpayNumber = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER || '0909739266';
+  const [showCoffeeModal, setShowCoffeeModal] = useState(false);
+  const [coffeeAmount, setCoffeeAmount] = useState<number | null>(null);
+
+  const coffeeOptions = [
+    { label: '25 บาท โอเลี้ยงหวานน้อย', amount: 25 },
+    { label: '45 บาท อูจิมัทฉะเย็นหวาน 0', amount: 45 },
+    { label: '45 บาท อาเมริกาโน่เย็นหวาน 0', amount: 45 }
+  ];
+
+  const handleCoffeeClick = (amount: number) => {
+    setCoffeeAmount(amount);
+  };
+  
   const [existingShopId, setExistingShopId] = useState<string | null>(null);
   const [checkingProfile, setCheckingProfile] = useState(true);
 
@@ -52,9 +66,25 @@ export default function Home() {
 
   return (
     <div className="animate-fade-in" style={{ padding: '24px 0' }}>
-      
-      {/* Language Toggle */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+      {/* Language Toggle & Buy Me A Coffee */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginBottom: '16px' }}>
+        <button 
+          style={{ 
+            background: 'var(--primary-color)', 
+            color: 'white',
+            border: 'none', 
+            padding: '4px 12px', 
+            borderRadius: '99px', 
+            fontSize: '0.8rem', 
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+          onClick={() => setShowCoffeeModal(true)}
+        >
+          ☕ Buy me a coffee
+        </button>
         <button 
           style={{ 
             background: 'var(--background-white)', 
@@ -69,6 +99,59 @@ export default function Home() {
           {lang === 'en' ? '🇹🇭 ไทย' : '🇬🇧 English'}
         </button>
       </div>
+
+      {/* Coffee Modal */}
+      {showCoffeeModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '24px', textAlign: 'center' }}>
+            <h2 style={{ marginBottom: '8px', color: 'var(--primary-color)' }}>☕ เลี้ยงกาแฟนักพัฒนา</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '0.95rem' }}>
+              เลือกระดับความสดชื่นเพื่อเป็นกำลังใจในการพัฒนาต่อไป
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              {coffeeOptions.map((opt, i) => (
+                <button
+                  key={i}
+                  style={{
+                    padding: '12px',
+                    border: coffeeAmount === opt.amount ? '2px solid var(--primary-color)' : '1px solid #ddd',
+                    borderRadius: '8px',
+                    background: coffeeAmount === opt.amount ? 'rgba(123, 97, 255, 0.05)' : 'white',
+                    fontWeight: 600,
+                    color: coffeeAmount === opt.amount ? 'var(--primary-color)' : 'var(--text-primary)'
+                  }}
+                  onClick={() => handleCoffeeClick(opt.amount)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {coffeeAmount && (
+              <div style={{ margin: '24px 0', padding: '16px', background: 'white', borderRadius: '16px', display: 'inline-block', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                <div style={{ marginBottom: '12px', fontWeight: 600, color: 'var(--primary-color)' }}>Scan to Pay {coffeeAmount} THB</div>
+                <img 
+                  src={`https://promptpay.io/${promptpayNumber}/${coffeeAmount}.png`} 
+                  alt="PromptPay QR Code" 
+                  style={{ width: '200px', height: '200px' }}
+                />
+              </div>
+            )}
+
+            <button 
+              className="btn-secondary"
+              style={{ width: '100%', padding: '12px', borderRadius: '8px' }}
+              onClick={() => {
+                setShowCoffeeModal(false);
+                setCoffeeAmount(null);
+              }}
+            >
+              {t('close') || 'Close'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Profile Header */}
       {profile && (
