@@ -13,6 +13,7 @@ export default function EditShopPage() {
   const router = useRouter();
   const params = useParams();
   const shopId = params.shopId as string;
+  const { t } = useLanguage();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
