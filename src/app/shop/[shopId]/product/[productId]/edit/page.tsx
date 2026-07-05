@@ -25,7 +25,32 @@ export default function EditProductPage() {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState('');
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const { storage } = await import('@/lib/firebase');
+      const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `products/${shopId}_${Date.now()}.${fileExt}`;
+      const storageRef = ref(storage, fileName);
+      
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      setImageUrl(url);
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   useEffect(() => {
     if (!profile) return;
@@ -172,14 +197,36 @@ export default function EditProductPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{t('image_url')}</label>
-            <input 
-              required
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder={t('image_url_placeholder')}
-              className="input-field"
-            />
+            
+            {imageUrl ? (
+              <div style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '12px', overflow: 'hidden', marginBottom: '8px', border: '1px solid #eee' }}>
+                <img src={imageUrl} alt="Preview" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button 
+                  type="button"
+                  onClick={() => setImageUrl('')}
+                  style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                >✕</button>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 16px', border: '2px dashed #ddd', borderRadius: '12px', cursor: 'pointer', background: '#fafafa', color: '#666', transition: 'all 0.2s' }}>
+                {uploadingImage ? (
+                  <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>Uploading...</span>
+                ) : (
+                  <>
+                    <span style={{ fontSize: '2rem', marginBottom: '12px' }}>📷</span>
+                    <span style={{ fontWeight: 600 }}>Click to upload image</span>
+                    <span style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px' }}>PNG, JPG, GIF up to 5MB</span>
+                  </>
+                )}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                />
+              </label>
+            )}
           </div>
 
           <div style={{ borderTop: '1px solid #eee', paddingTop: '16px', marginTop: '8px' }}>
@@ -244,20 +291,41 @@ export default function EditProductPage() {
           <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
             <button 
               type="button" 
-              className="btn-secondary" 
-              style={{ flex: 1, padding: '16px', color: 'var(--accent-color)', borderColor: 'var(--accent-color)' }}
+              style={{ 
+                flex: 1, 
+                padding: '16px', 
+                backgroundColor: 'var(--primary-color)', 
+                color: '#FFB74D', 
+                borderRadius: '30px', 
+                fontWeight: 'bold', 
+                fontSize: '1.1rem', 
+                border: 'none', 
+                boxShadow: '0 4px 12px rgba(123, 97, 255, 0.3)',
+                cursor: 'pointer'
+              }}
               onClick={handleDelete}
               disabled={saving}
             >
-              {t('delete_product')}
+              ลบสินค้านี้
             </button>
             <button 
               type="submit" 
-              className="btn-primary" 
               disabled={saving}
-              style={{ flex: 2, opacity: saving ? 0.7 : 1 }}
+              style={{ 
+                flex: 1, 
+                padding: '16px', 
+                backgroundColor: '#4CAF50', 
+                color: 'white', 
+                borderRadius: '30px', 
+                fontWeight: 'bold', 
+                fontSize: '1.1rem', 
+                border: 'none', 
+                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)', 
+                opacity: saving ? 0.7 : 1,
+                cursor: 'pointer'
+              }}
             >
-              {saving ? t('saving_product') : t('save_changes')}
+              {saving ? t('saving_product') : 'บันทึกการเปลี่ยนแปลง'}
             </button>
           </div>
         </form>
