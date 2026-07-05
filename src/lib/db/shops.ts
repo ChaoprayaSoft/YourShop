@@ -11,15 +11,24 @@ export type Shop = {
   isOpen?: boolean;
   isBanned?: boolean;
   adMessage?: string;
+  productSlots: number;
+  maintenanceFeeDueDate: any; // Timestamp
   createdAt: any;
 };
 
-export async function createShop(shopData: Omit<Shop, 'createdAt' | 'isOpen' | 'isBanned'>) {
+export async function createShop(shopData: Omit<Shop, 'createdAt' | 'isOpen' | 'isBanned' | 'productSlots' | 'maintenanceFeeDueDate'>) {
   const shopRef = doc(db, 'shops', shopData.id);
+  
+  // Set maintenance fee due date to 30 days from now
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + 30);
+  
   await setDoc(shopRef, {
     ...shopData,
     isOpen: true,
     isBanned: false,
+    productSlots: 2, // Free 2 product slots
+    maintenanceFeeDueDate: dueDate,
     createdAt: serverTimestamp(),
   });
   return shopData.id;

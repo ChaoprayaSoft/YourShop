@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, query, where, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Product } from './products';
 
@@ -43,4 +43,11 @@ export async function getBuyerOrders(buyerId: string): Promise<Order[]> {
 export async function updateOrderStatus(orderId: string, status: Order['status'], rejectReason?: string) {
   const orderRef = doc(db, 'orders', orderId);
   await setDoc(orderRef, { status, ...(rejectReason ? { rejectReason } : {}) }, { merge: true });
+}
+
+export function subscribeToShopOrders(shopId: string, onUpdate: (orders: Order[]) => void) {
+  const ordersQuery = query(collection(db, 'orders'), where('shopId', '==', shopId));
+  return onSnapshot(ordersQuery, (snap) => {
+    onUpdate(snap.docs.map(doc => doc.data() as Order));
+  });
 }

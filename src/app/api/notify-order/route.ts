@@ -30,7 +30,27 @@ export async function POST(req: Request) {
 
     if (type === 'placed') {
       subject = `New Order Placed by ${order.buyerName}`;
-      text = `You have a new order from ${order.buyerName} for ${order.totalPrice} THB.\n\nPlease check your shop dashboard to accept or reject it.`;
+      const orderDate = new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+      let itemsList = '';
+      if (order.items && Array.isArray(order.items)) {
+        itemsList = order.items.map((item: any) => {
+          const itemChoicesTotal = item.selectedChoices?.reduce((sum: number, c: any) => sum + c.price, 0) || 0;
+          const itemPrice = (item.product.price + itemChoicesTotal) * item.quantity;
+          const choicesStr = item.selectedChoices?.length > 0 ? ` (+${item.selectedChoices.map((c: any) => c.name).join(', ')})` : '';
+          return `- ${item.quantity}x ${item.product.name}${choicesStr} : ฿${itemPrice}`;
+        }).join('\n');
+      }
+
+      text = `You have a new order from ${order.buyerName} for ${order.totalPrice} THB.
+Date/Time: ${orderDate}
+
+Delivery Address:
+${order.buyerAddress || 'Not provided'}
+
+Items:
+${itemsList}
+
+Please check your shop dashboard to accept or reject it.`;
     } else if (type === 'accepted') {
       subject = `Your Order has been Accepted!`;
       text = `Great news! Your order of ${order.totalPrice} THB has been accepted by the shop owner.`;

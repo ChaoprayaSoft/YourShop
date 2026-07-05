@@ -5,9 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { getShop, updateShop, Shop } from '@/lib/db/shops';
 import { getShopProducts, Product, ProductChoice } from '@/lib/db/products';
-import { getShopOrders, updateOrderStatus, Order, placeOrder } from '@/lib/db/orders';
+import { getShopOrders, subscribeToShopOrders, updateOrderStatus, Order, placeOrder } from '@/lib/db/orders';
 import { getMarket } from '@/lib/db/markets';
-import { getUserProfile } from '@/lib/db/users';
+import { getUserProfile, UserProfile } from '@/lib/db/users';
 import { useLanguage } from '@/components/LanguageProvider';
 
 type CartItem = { product: Product; quantity: number; selectedChoices?: ProductChoice[] };
@@ -24,6 +24,7 @@ export default function ShopDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ownerProfile, setOwnerProfile] = useState<UserProfile | null>(null);
 
   // Buyer States
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -39,22 +40,37 @@ export default function ShopDashboard() {
   const [showAdsModal, setShowAdsModal] = useState(false);
   const [adMessage, setAdMessage] = useState('');
   const [savingAd, setSavingAd] = useState(false);
+  
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [topUpPackage, setTopUpPackage] = useState<number | null>(null);
+  const [transferDate, setTransferDate] = useState('');
+  const [transferTime, setTransferTime] = useState('');
+  const [submittingTopUp, setSubmittingTopUp] = useState(false);
+  
+  const promptpayNumber = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER || '0909739266';
 
   useEffect(() => {
     if (!shopId) return;
-    Promise.all([getShop(shopId), getShopProducts(shopId), getShopOrders(shopId)])
-      .then(async ([shopData, productsData, ordersData]) => {
+    
+    let unsubscribeOrders: () => void;
+    
+    Promise.all([getShop(shopId), getShopProducts(shopId), getUserProfile(shopId)])
+      .then(async ([shopData, productsData, ownerData]) => {
         setShop(shopData);
         if (shopData?.adMessage) {
           setAdMessage(shopData.adMessage);
         }
         setProducts(productsData);
-        setOrders(ordersData);
+        setOwnerProfile(ownerData);
         
         if (shopData?.marketId) {
           const m = await getMarket(shopData.marketId);
           if (m) setMarketName(m.name);
         }
+        
+        unsubscribeOrders = subscribeToShopOrders(shopId, (newOrders) => {
+          setOrders(newOrders);
+        });
         
         setLoading(false);
       })
@@ -62,6 +78,10 @@ export default function ShopDashboard() {
         console.error(err);
         setLoading(false);
       });
+      
+    return () => {
+      if (unsubscribeOrders) unsubscribeOrders();
+    };
   }, [shopId]);
 
   if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
@@ -77,10 +97,20 @@ export default function ShopDashboard() {
 
   const isOwner = profile?.userId === shopId;
   const isClosed = shop.isOpen === false;
+  
+  const completedOrdersCount = orders.filter(o => o.status === 'completed').length;
+  const maintenanceFee = completedOrdersCount >= 5 ? 2 : 5;
+  const dueDateMillis = shop.maintenanceFeeDueDate?.toMillis ? shop.maintenanceFeeDueDate.toMillis() : Date.now();
+  const daysUntilDue = Math.ceil((dueDateMillis - Date.now()) / (1000 * 60 * 60 * 24));
+  const isPastDue = daysUntilDue <= 0;
 
   // --- Functions ---
   const handleToggleShopStatus = async () => {
     const newStatus = !isClosed;
+    if (newStatus && isPastDue) {
+      alert(`ไม่สามารถเปิดร้านได้ กรุณาชำระค่าธรรมเนียมบำรุงรักษาก่อน (Cannot open shop, please pay maintenance fee)`);
+      return;
+    }
     if (!confirm(newStatus ? 'Are you sure you want to OPEN the shop?' : 'Are you sure you want to CLOSE the shop?')) return;
     try {
       await updateShop(shopId, { isOpen: newStatus });
@@ -90,6 +120,46 @@ export default function ShopDashboard() {
       alert(t('error'));
     }
   };
+
+  const handlePayMaintenanceFee = async () => {
+    if (!ownerProfile) return;
+    if (ownerProfile.coins < maintenanceFee) {
+      alert('เหรียญไม่พอ กรุณาเติมเหรียญ (Not enough coins, please top up)');
+      return;
+    }
+    
+    const confirmMsg = `ชำระค่าบำรุงรักษา ${maintenanceFee} เหรียญ สำหรับ 30 วัน? (Pay ${maintenanceFee} coins for 30 days?)`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      // 1. Deduct coins
+      const { updateUserProfile } = await import('@/lib/db/users');
+      await updateUserProfile(shopId, { coins: ownerProfile.coins - maintenanceFee });
+      
+      // 2. Extend due date
+      const newDueDate = new Date();
+      newDueDate.setDate(newDueDate.getDate() + 30);
+      await updateShop(shopId, { maintenanceFeeDueDate: newDueDate, isOpen: true });
+      
+      // Update local state
+      setOwnerProfile({ ...ownerProfile, coins: ownerProfile.coins - maintenanceFee });
+      setShop({ ...shop, maintenanceFeeDueDate: { toMillis: () => newDueDate.getTime() }, isOpen: true });
+      alert('ชำระค่าบำรุงรักษาและเปิดร้านเรียบร้อยแล้ว (Maintenance fee paid and shop is now open)');
+    } catch (err) {
+      console.error(err);
+      alert(t('error'));
+    }
+  };
+
+  useEffect(() => {
+    // Auto-close if past due
+    if (isOwner && shop && shop.isOpen && isPastDue) {
+      updateShop(shopId, { isOpen: false }).then(() => {
+        setShop(prev => prev ? { ...prev, isOpen: false } : prev);
+        alert('ร้านค้าถูกปิดอัตโนมัติเนื่องจากเกินกำหนดชำระค่าบำรุงรักษา (Shop was automatically closed due to past due maintenance fee)');
+      }).catch(console.error);
+    }
+  }, [isOwner, shop, isPastDue, shopId]);
 
   const sendNotification = async (order: Order, type: 'placed' | 'accepted' | 'rejected' | 'completed') => {
     try {
@@ -218,21 +288,45 @@ export default function ShopDashboard() {
             </div>
           </div>
           {isOwner && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button 
-                onClick={handleToggleShopStatus}
-                style={{ 
-                  background: isClosed ? 'var(--primary-color)' : 'rgba(255, 107, 107, 0.1)', 
-                  color: isClosed ? 'white' : 'var(--accent-color)', 
-                  border: isClosed ? 'none' : '1px solid rgba(255,107,107,0.3)', 
-                  padding: '6px 12px', 
-                  borderRadius: '99px', 
-                  fontSize: '0.9rem', 
-                  fontWeight: 600 
-                }}
-              >
-                {isClosed ? 'Open Shop' : 'Close Shop'}
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 600, color: 'var(--primary-color)' }}>🪙 {ownerProfile?.coins || 0} Coins</span>
+                <button 
+                  style={{ background: 'var(--primary-color)', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600, border: 'none' }}
+                  onClick={() => setShowTopUpModal(true)}
+                >
+                  Top Up
+                </button>
+              </div>
+              <div style={{ fontSize: '0.8rem', color: isPastDue ? '#c62828' : 'var(--text-secondary)', marginBottom: '8px' }}>
+                Shop fees {maintenanceFee} coins in {Math.max(0, daysUntilDue)} days
+              </div>
+              
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {isPastDue ? (
+                  <button 
+                    style={{ background: 'var(--primary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600 }}
+                    onClick={handlePayMaintenanceFee}
+                  >
+                    Pay Maintenance Fee
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleToggleShopStatus}
+                    style={{ 
+                      background: isClosed ? 'var(--primary-color)' : 'rgba(255, 107, 107, 0.1)', 
+                      color: isClosed ? 'white' : 'var(--accent-color)', 
+                      border: isClosed ? 'none' : '1px solid rgba(255,107,107,0.3)', 
+                      padding: '6px 12px', 
+                      borderRadius: '99px', 
+                      fontSize: '0.9rem', 
+                      fontWeight: 600 
+                    }}
+                  >
+                    {isClosed ? 'Open Shop' : 'Close Shop'}
+                  </button>
+                )}
+              </div>
               <button 
                 style={{ background: 'var(--secondary-color)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600 }}
                 onClick={() => setShowAdsModal(true)}
@@ -259,15 +353,47 @@ export default function ShopDashboard() {
 
       {/* Products Section */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '1.25rem' }}>{t('all_products')} ({products.length})</h2>
+        <h2 style={{ fontSize: '1.25rem' }}>{t('all_products')} ({products.length}/{shop.productSlots || 2})</h2>
         {isOwner && (
-          <button 
-            className="btn-primary" 
-            style={{ padding: '8px 16px', fontSize: '0.9rem' }}
-            onClick={() => router.push(`/shop/${shopId}/add-product`)}
-          >
-            {t('add_product')}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              className="btn-secondary" 
+              style={{ padding: '8px 16px', fontSize: '0.9rem', border: '1px solid var(--primary-color)', color: 'var(--primary-color)' }}
+              onClick={async () => {
+                if ((ownerProfile?.coins || 0) < 5) {
+                  alert('เหรียญไม่พอ กรุณาเติมเหรียญ (Not enough coins)');
+                  return;
+                }
+                if (confirm('เพิ่มช่องสินค้า 1 ช่อง ใช้ 5 เหรียญ? (Buy 1 product slot for 5 coins?)')) {
+                  try {
+                    const { updateUserProfile } = await import('@/lib/db/users');
+                    await updateUserProfile(shopId, { coins: (ownerProfile?.coins || 0) - 5 });
+                    await updateShop(shopId, { productSlots: (shop.productSlots || 2) + 1 });
+                    setOwnerProfile(prev => prev ? { ...prev, coins: prev.coins - 5 } : prev);
+                    setShop({ ...shop, productSlots: (shop.productSlots || 2) + 1 });
+                  } catch (err) {
+                    console.error(err);
+                    alert('Error');
+                  }
+                }
+              }}
+            >
+              Buy Slot
+            </button>
+            <button 
+              className="btn-primary" 
+              style={{ padding: '8px 16px', fontSize: '0.9rem', opacity: products.length >= (shop.productSlots || 2) ? 0.5 : 1 }}
+              onClick={() => {
+                if (products.length >= (shop.productSlots || 2)) {
+                  alert('ช่องสินค้าเต็ม กรุณาซื้อช่องสินค้าเพิ่ม (Product slots full, please buy more slots)');
+                  return;
+                }
+                router.push(`/shop/${shopId}/add-product`);
+              }}
+            >
+              {t('add_product')}
+            </button>
+          </div>
         )}
       </div>
 
@@ -513,6 +639,108 @@ export default function ShopDashboard() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Top Up Modal (Owner) */}
+      {showTopUpModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ marginBottom: '16px' }}>เติมเหรียญ (Top Up Coins)</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>เลือกแพ็กเกจที่ต้องการและสแกน QR Code เพื่อชำระเงิน (Choose a package and scan QR to pay)</p>
+            
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+              <button 
+                style={{ flex: 1, padding: '12px', border: topUpPackage === 10 ? '2px solid var(--primary-color)' : '1px solid #ddd', borderRadius: '8px', background: topUpPackage === 10 ? 'rgba(123, 97, 255, 0.05)' : 'white' }}
+                onClick={() => setTopUpPackage(10)}
+              >
+                <div style={{ fontWeight: 'bold' }}>10 THB</div>
+                <div style={{ color: 'var(--primary-color)' }}>🪙 20 Coins</div>
+              </button>
+              <button 
+                style={{ flex: 1, padding: '12px', border: topUpPackage === 20 ? '2px solid var(--primary-color)' : '1px solid #ddd', borderRadius: '8px', background: topUpPackage === 20 ? 'rgba(123, 97, 255, 0.05)' : 'white' }}
+                onClick={() => setTopUpPackage(20)}
+              >
+                <div style={{ fontWeight: 'bold' }}>20 THB</div>
+                <div style={{ color: 'var(--primary-color)' }}>🪙 50 Coins</div>
+              </button>
+            </div>
+
+            {topUpPackage && (
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <div style={{ background: '#f5f5f5', padding: '16px', borderRadius: '12px', display: 'inline-block' }}>
+                  <img src={`https://promptpay.io/${promptpayNumber}/${topUpPackage}.png`} alt="PromptPay QR" style={{ width: '200px', height: '200px' }} />
+                </div>
+                <p style={{ marginTop: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Scan to pay {topUpPackage} THB</p>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <label>
+                <span style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px' }}>วันที่โอน (Transfer Date)</span>
+                <input type="date" className="input-field" value={transferDate} onChange={e => setTransferDate(e.target.value)} />
+              </label>
+              <label>
+                <span style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px' }}>เวลาโอน (Transfer Time)</span>
+                <input type="time" className="input-field" value={transferTime} onChange={e => setTransferTime(e.target.value)} />
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                style={{ flex: 1, padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontWeight: 600 }}
+                onClick={() => setShowTopUpModal(false)}
+                disabled={submittingTopUp}
+              >
+                {t('cancel')}
+              </button>
+              <button 
+                className="btn-primary" 
+                style={{ flex: 1, padding: '12px', borderRadius: '8px', opacity: (!topUpPackage || !transferDate || !transferTime || submittingTopUp) ? 0.5 : 1 }}
+                disabled={!topUpPackage || !transferDate || !transferTime || submittingTopUp}
+                onClick={async () => {
+                  setSubmittingTopUp(true);
+                  try {
+                    const { createTopUpRequest } = await import('@/lib/db/topups');
+                    await createTopUpRequest({
+                      userId: shopId,
+                      userName: ownerProfile?.displayName || shop.ownerName,
+                      userEmail: ownerProfile?.email,
+                      amountTHB: topUpPackage!,
+                      coinsRequested: topUpPackage === 10 ? 20 : 50,
+                      transferDate,
+                      transferTime
+                    });
+                    
+                    // Send Email to Admin
+                    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@yourshop.com';
+                    await fetch('/api/notify', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        type: 'topup_request',
+                        recipientEmail: adminEmail,
+                        order: { buyerName: ownerProfile?.displayName, totalPrice: topUpPackage }
+                      })
+                    });
+                    
+                    alert('ส่งคำขอเติมเหรียญเรียบร้อยแล้ว กรุณารอแอดมินอนุมัติ (Top up request sent, please wait for admin approval)');
+                    setShowTopUpModal(false);
+                    setTopUpPackage(null);
+                    setTransferDate('');
+                    setTransferTime('');
+                  } catch (err) {
+                    console.error(err);
+                    alert(t('error'));
+                  } finally {
+                    setSubmittingTopUp(false);
+                  }
+                }}
+              >
+                {submittingTopUp ? 'กำลังส่ง...' : 'แจ้งโอนเงิน (Submit)'}
+              </button>
             </div>
           </div>
         </div>

@@ -23,7 +23,28 @@ export async function POST(req: Request) {
 
     if (type === 'placed' && order) {
       subject = `[YourShop] มีออเดอร์ใหม่จากคุณ ${order.buyerName}`;
-      text = `มีออเดอร์ใหม่จากคุณ ${order.buyerName} ยอดรวมทั้งหมด ฿${order.totalPrice}\n\nกรุณาเข้าสู่ระบบเพื่อตรวจสอบและรับออเดอร์`;
+      const orderDate = new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+      let itemsList = '';
+      if (order.items && Array.isArray(order.items)) {
+        itemsList = order.items.map((item: any) => {
+          const itemChoicesTotal = item.selectedChoices?.reduce((sum: number, c: any) => sum + c.price, 0) || 0;
+          const itemPrice = (item.product.price + itemChoicesTotal) * item.quantity;
+          const choicesStr = item.selectedChoices?.length > 0 ? ` (+${item.selectedChoices.map((c: any) => c.name).join(', ')})` : '';
+          return `- ${item.quantity}x ${item.product.name}${choicesStr} : ฿${itemPrice}`;
+        }).join('\n');
+      }
+      
+      text = `มีออเดอร์ใหม่จากคุณ ${order.buyerName}
+ยอดรวมทั้งหมด ฿${order.totalPrice}
+วันที่/เวลา: ${orderDate}
+
+ที่อยู่จัดส่ง:
+${order.buyerAddress || 'ไม่ระบุ'}
+
+รายการสินค้า:
+${itemsList}
+
+กรุณาเข้าสู่ระบบเพื่อตรวจสอบและรับออเดอร์`;
     } else if (type === 'accepted' && order) {
       subject = `[YourShop] ออเดอร์ของคุณได้รับการยืนยันแล้ว!`;
       text = `ข่าวดี! ร้านค้าได้รับออเดอร์ยอด ฿${order.totalPrice} ของคุณแล้ว และกำลังดำเนินการเตรียมสินค้า`;
@@ -40,6 +61,15 @@ export async function POST(req: Request) {
       subject = `⚠️ Your shop has been suspended / ร้านค้าของคุณถูกระงับ`;
       const shopName = body.shopName || 'Your Shop';
       text = `Dear Shop Owner,\nWe regret to inform you that your shop "${shopName}" has been suspended by the administrator.\nYou will no longer be visible to buyers in the marketplace.\n\nเรียน เจ้าของร้าน\nเราขออภัยที่ต้องแจ้งให้ทราบว่า ร้านค้า "${shopName}" ของคุณถูกระงับการใช้งานโดยผู้ดูแลระบบ\nร้านค้าของคุณจะไม่แสดงให้ผู้ซื้อเห็นในตลาดอีกต่อไป`;
+    } else if (type === 'topup_request') {
+      subject = `[YourShop] มีคำขอเติมเหรียญใหม่ (New Top-up Request)`;
+      text = `ผู้ใช้ ${order?.buyerName || 'ไม่ทราบชื่อ'} แจ้งโอนเงินจำนวน ${order?.totalPrice || 0} บาท\nกรุณาตรวจสอบและอนุมัติในระบบ Admin`;
+    } else if (type === 'topup_approved') {
+      subject = `[YourShop] การเติมเหรียญสำเร็จแล้ว (Top-up Approved)`;
+      text = `การแจ้งโอนเงินของคุณได้รับการอนุมัติแล้ว คุณได้รับ ${order?.totalPrice || 0} เหรียญ`;
+    } else if (type === 'topup_rejected') {
+      subject = `[YourShop] คำขอเติมเหรียญถูกปฏิเสธ (Top-up Rejected)`;
+      text = `คำขอเติมเหรียญของคุณถูกปฏิเสธ เนื่องจาก: ${order?.rejectReason || 'ไม่ระบุ'}`;
     } else {
       subject = `[YourShop] Notification`;
       text = `You have a new notification.`;

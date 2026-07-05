@@ -11,7 +11,7 @@ export default function Home() {
   const { isInitialized, liffError, profile } = useLiff();
   const router = useRouter();
   const { t, lang, setLang } = useLanguage();
-  
+
   const promptpayNumber = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER || '0909739266';
   const [showCoffeeModal, setShowCoffeeModal] = useState(false);
   const [coffeeAmount, setCoffeeAmount] = useState<number | null>(null);
@@ -19,13 +19,13 @@ export default function Home() {
   const coffeeOptions = [
     { label: '25 บาท โอเลี้ยงหวานน้อย', amount: 25 },
     { label: '45 บาท อูจิมัทฉะเย็นหวาน 0', amount: 45 },
-    { label: '45 บาท อาเมริกาโน่เย็นหวาน 0', amount: 45 }
+    { label: '50 บาท อาเมริกาโน่เย็นหวาน 0', amount: 50 }
   ];
 
   const handleCoffeeClick = (amount: number) => {
     setCoffeeAmount(amount);
   };
-  
+
   const [existingShopId, setExistingShopId] = useState<string | null>(null);
   const [checkingProfile, setCheckingProfile] = useState(true);
 
@@ -68,14 +68,14 @@ export default function Home() {
     <div className="animate-fade-in" style={{ padding: '24px 0' }}>
       {/* Language Toggle & Buy Me A Coffee */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginBottom: '16px' }}>
-        <button 
-          style={{ 
-            background: 'var(--primary-color)', 
+        <button
+          style={{
+            background: 'var(--primary-color)',
             color: 'white',
-            border: 'none', 
-            padding: '4px 12px', 
-            borderRadius: '99px', 
-            fontSize: '0.8rem', 
+            border: 'none',
+            padding: '4px 12px',
+            borderRadius: '99px',
+            fontSize: '0.8rem',
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
@@ -85,14 +85,14 @@ export default function Home() {
         >
           ☕ Buy me a coffee
         </button>
-        <button 
-          style={{ 
-            background: 'var(--background-white)', 
-            border: '1px solid #ddd', 
-            padding: '4px 12px', 
-            borderRadius: '99px', 
-            fontSize: '0.8rem', 
-            fontWeight: 600 
+        <button
+          style={{
+            background: 'var(--background-white)',
+            border: '1px solid #ddd',
+            padding: '4px 12px',
+            borderRadius: '99px',
+            fontSize: '0.8rem',
+            fontWeight: 600
           }}
           onClick={() => setLang(lang === 'en' ? 'th' : 'en')}
         >
@@ -108,7 +108,7 @@ export default function Home() {
             <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '0.95rem' }}>
               เลือกระดับความสดชื่นเพื่อเป็นกำลังใจในการพัฒนาต่อไป
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
               {coffeeOptions.map((opt, i) => (
                 <button
@@ -131,15 +131,15 @@ export default function Home() {
             {coffeeAmount && (
               <div style={{ margin: '24px 0', padding: '16px', background: 'white', borderRadius: '16px', display: 'inline-block', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <div style={{ marginBottom: '12px', fontWeight: 600, color: 'var(--primary-color)' }}>Scan to Pay {coffeeAmount} THB</div>
-                <img 
-                  src={`https://promptpay.io/${promptpayNumber}/${coffeeAmount}.png`} 
-                  alt="PromptPay QR Code" 
+                <img
+                  src={`https://promptpay.io/${promptpayNumber}/${coffeeAmount}.png`}
+                  alt="PromptPay QR Code"
                   style={{ width: '200px', height: '200px' }}
                 />
               </div>
             )}
 
-            <button 
+            <button
               className="btn-secondary"
               style={{ width: '100%', padding: '12px', borderRadius: '8px' }}
               onClick={() => {
@@ -157,10 +157,10 @@ export default function Home() {
       {profile && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           {profile.pictureUrl ? (
-            <img 
-              src={profile.pictureUrl} 
-              alt="Profile" 
-              style={{ width: '60px', height: '60px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} 
+            <img
+              src={profile.pictureUrl}
+              alt="Profile"
+              style={{ width: '60px', height: '60px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
             />
           ) : (
             <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold' }}>
@@ -171,7 +171,7 @@ export default function Home() {
             <h1 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{t('hi')}, {profile.displayName}</h1>
             <p style={{ color: 'var(--text-secondary)' }}>{t('welcome_to')}</p>
           </div>
-          <button 
+          <button
             style={{ padding: '8px 12px', background: 'var(--background-white)', border: '1px solid #ddd', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}
             onClick={() => router.push('/profile')}
           >
@@ -182,11 +182,11 @@ export default function Home() {
 
       {/* Main Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        
+
         {/* Buyer Navigation */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div 
-            className="glass-panel hover-card" 
+          <div
+            className="glass-panel hover-card"
             style={{ padding: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px' }}
             onClick={() => router.push('/marketplace')}
           >
@@ -199,8 +199,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div 
-            className="glass-panel hover-card" 
+          <div
+            className="glass-panel hover-card"
             style={{ padding: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px' }}
             onClick={() => router.push('/my-orders')}
           >
@@ -226,7 +226,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        
+
         {/* Admin Section */}
         {isAdmin && (
           <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer', border: '1px solid var(--accent-color)' }} onClick={() => router.push('/admin')}>

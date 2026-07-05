@@ -8,6 +8,7 @@ export type UserProfile = {
   email?: string; // Required for notifications
   address: string;
   marketId: string; // Their default market location
+  coins: number;
   createdAt: any;
   updatedAt: any;
 };
@@ -18,7 +19,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   return snap.exists() ? (snap.data() as UserProfile) : null;
 }
 
-export async function updateUserProfile(userId: string, data: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>) {
+export async function updateUserProfile(userId: string, data: Partial<Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>>) {
   const docRef = doc(db, 'users', userId);
   const snap = await getDoc(docRef);
   
@@ -30,6 +31,7 @@ export async function updateUserProfile(userId: string, data: Omit<UserProfile, 
   } else {
     await setDoc(docRef, {
       ...data,
+      coins: 20, // Free 20 coins for first login
       id: userId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
