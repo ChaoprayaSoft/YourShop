@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { auth } from '@/lib/firebase';
+import { signInWithCustomToken } from 'firebase/auth';
 
 type LiffProfile = {
   userId: string;
@@ -101,6 +103,28 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
         log('User is logged in. Fetching profile...');
         const profile = await liff.getProfile();
         log('Profile: ' + profile.displayName);
+
+        // Firebase Custom Auth
+        const accessToken = liff.getAccessToken();
+        if (accessToken) {
+          log('Fetching Firebase Custom Token...');
+          const authRes = await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken }),
+          });
+
+          if (!authRes.ok) {
+            log('Failed to fetch Custom Token: ' + await authRes.text());
+          } else {
+            const { customToken } = await authRes.json();
+            if (customToken) {
+              log('Signing into Firebase...');
+              await signInWithCustomToken(auth, customToken);
+              log('Firebase Auth successful!');
+            }
+          }
+        }
 
         const ctx = liff.getContext();
         log('Context type: ' + (ctx?.type || 'none'));
