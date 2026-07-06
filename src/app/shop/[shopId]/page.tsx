@@ -359,7 +359,10 @@ export default function ShopDashboard() {
               )}
               <button 
                 style={{ background: 'var(--secondary-color)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
-                onClick={() => setShowAdsModal(true)}
+                onClick={() => {
+                  setAdMessage(shop?.adMessage || '');
+                  setShowAdsModal(true);
+                }}
               >
                 Ads
               </button>
@@ -805,8 +808,10 @@ export default function ShopDashboard() {
 
             <div style={{ padding: '12px', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '8px', marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
               <strong>ตัวอย่างที่บอทจะส่ง:</strong>
-              <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap' }}>{adMessage || '(ข้อความโฆษณาของคุณ)'}</div>
-              <div style={{ marginTop: '8px', color: 'var(--primary-color)' }}>เชิญแวะดูและสั่งซื้อได้ที่<br/>https://liff.line.me/...</div>
+              <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto', paddingRight: '4px' }}>
+                {adMessage || '(ข้อความโฆษณาของคุณ)'}
+                <div style={{ marginTop: '8px', color: 'var(--primary-color)' }}>เชิญแวะดูและสั่งซื้อได้ที่<br/>https://liff.line.me/{process.env.NEXT_PUBLIC_LIFF_ID}/marketplace/{shopId}</div>
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
