@@ -20,19 +20,20 @@ export async function POST(req: Request) {
 
     let subject = '';
     let text = '';
+    let itemsList = '';
+
+    if (order && order.items && Array.isArray(order.items)) {
+      itemsList = order.items.map((item: any) => {
+        const itemChoicesTotal = item.selectedChoices?.reduce((sum: number, c: any) => sum + c.price, 0) || 0;
+        const itemPrice = (item.product.price + itemChoicesTotal) * item.quantity;
+        const choicesStr = item.selectedChoices?.length > 0 ? ` (+${item.selectedChoices.map((c: any) => c.name).join(', ')})` : '';
+        return `- ${item.quantity}x ${item.product.name}${choicesStr} : ฿${itemPrice}`;
+      }).join('\n');
+    }
 
     if (type === 'placed' && order) {
       subject = `[YourShop] มีออเดอร์ใหม่จากคุณ ${order.buyerName}`;
       const orderDate = new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
-      let itemsList = '';
-      if (order.items && Array.isArray(order.items)) {
-        itemsList = order.items.map((item: any) => {
-          const itemChoicesTotal = item.selectedChoices?.reduce((sum: number, c: any) => sum + c.price, 0) || 0;
-          const itemPrice = (item.product.price + itemChoicesTotal) * item.quantity;
-          const choicesStr = item.selectedChoices?.length > 0 ? ` (+${item.selectedChoices.map((c: any) => c.name).join(', ')})` : '';
-          return `- ${item.quantity}x ${item.product.name}${choicesStr} : ฿${itemPrice}`;
-        }).join('\n');
-      }
       
       text = `มีออเดอร์ใหม่จากคุณ ${order.buyerName}
 ยอดรวมทั้งหมด ฿${order.totalPrice}
@@ -50,13 +51,20 @@ ${itemsList}
       text = `ข่าวดี! ร้านค้าได้รับออเดอร์ยอด ฿${order.totalPrice} ของคุณแล้ว และกำลังดำเนินการเตรียมสินค้า`;
     } else if (type === 'rejected' && order) {
       subject = `[YourShop] ออเดอร์ของคุณถูกปฏิเสธ`;
-      text = `ขออภัย ออเดอร์ยอด ฿${order.totalPrice} ของคุณถูกปฏิเสธจากร้านค้า\nเหตุผล: ${order.rejectReason || 'ไม่มีระบุเหตุผล'}`;
+      text = `ขออภัย ออเดอร์ยอด ฿${order.totalPrice} ของคุณถูกปฏิเสธจากร้านค้า
+เหตุผล: ${order.rejectReason || 'ไม่มีระบุเหตุผล'}
+
+รายการสินค้าที่ถูกปฏิเสธ:
+${itemsList}`;
     } else if (type === 'completed' && order) {
       subject = `[YourShop] ออเดอร์ของคุณเสร็จสมบูรณ์แล้ว!`;
       text = `ออเดอร์ยอด ฿${order.totalPrice} ของคุณเสร็จสมบูรณ์แล้ว ขอบคุณที่ใช้บริการ!`;
     } else if (type === 'canceled' && order) {
       subject = `🚫 [YourShop] ออเดอร์ถูกยกเลิก (Order Canceled)`;
-      text = `ลูกค้า ${order.buyerName} ได้ยกเลิกออเดอร์ยอด ฿${order.totalPrice} แล้ว (Customer canceled this order).`;
+      text = `ลูกค้า ${order.buyerName} ได้ยกเลิกออเดอร์ยอด ฿${order.totalPrice} แล้ว (Customer canceled this order).
+
+รายการสินค้าที่ถูกยกเลิก:
+${itemsList}`;
     } else if (type === 'banned') {
       subject = `⚠️ Your shop has been suspended / ร้านค้าของคุณถูกระงับ`;
       const shopName = body.shopName || 'Your Shop';
