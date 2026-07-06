@@ -39,6 +39,7 @@ export default function ShopDashboard() {
   const [rejectReason, setRejectReason] = useState('');
   const [showAdsModal, setShowAdsModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [adMessage, setAdMessage] = useState('');
   const [savingAd, setSavingAd] = useState(false);
   
@@ -393,6 +394,12 @@ export default function ShopDashboard() {
                 onClick={() => setShowRateModal(true)}
               >
                 {t('rates')}
+              </button>
+              <button 
+                style={{ background: 'var(--background-white)', color: 'var(--text-secondary)', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+                onClick={() => setShowTermsModal(true)}
+              >
+                เงื่อนไขการใช้งาน
               </button>
             </div>
 
@@ -894,6 +901,60 @@ export default function ShopDashboard() {
               className="btn-primary" 
               style={{ width: '100%', marginTop: '24px', padding: '12px', borderRadius: '99px' }}
               onClick={() => setShowRateModal(false)}
+            >
+              {t('close')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Terms of Use Modal */}
+      {showTermsModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', background: 'white', padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--primary-color)' }}>ข้อตกลงและเงื่อนไขการเปิดร้านค้า (Terms of Use)</h2>
+              <button style={{ fontWeight: 'bold', fontSize: '1.2rem', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowTermsModal(false)}>✕</button>
+            </div>
+            
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '8px', display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.95rem', lineHeight: 1.6 }}>
+              <div>
+                <strong style={{ fontSize: '1.05rem' }}>1. การเปิดร้านค้าและบัญชีผู้ใช้งาน</strong>
+                <ul style={{ paddingLeft: '20px', marginTop: '8px', color: 'var(--text-secondary)' }}>
+                  <li><strong>ความถูกต้องของข้อมูล:</strong> ผู้ขายต้องให้ข้อมูลโปรไฟล์ที่ถูกต้อง เป็นความจริง และเป็นปัจจุบัน</li>
+                  <li><strong>ความรับผิดชอบ:</strong> ผู้ขายต้องรับผิดชอบในการรักษาความปลอดภัยของบัญชีตนเอง และรับผิดชอบต่อทุกกิจกรรมที่เกิดขึ้นภายใต้บัญชีของร้านค้า</li>
+                </ul>
+              </div>
+
+              <div>
+                <strong style={{ fontSize: '1.05rem' }}>2. การลงขายสินค้า</strong>
+                <ul style={{ paddingLeft: '20px', marginTop: '8px', color: 'var(--text-secondary)' }}>
+                  <li><strong>สินค้าต้องห้าม:</strong> ห้ามลงขายสินค้าที่ผิดกฎหมาย ละเมิดทรัพย์สินทางปัญญา สินค้าอันตราย หรือขัดต่อศีลธรรมอันดี</li>
+                  <li><strong>ความโปร่งใส:</strong> ผู้ขายต้องระบุรายละเอียดสินค้า ราคา และเงื่อนไขการซื้อขายให้ชัดเจนและตรงกับความเป็นจริง</li>
+                  <li><strong>สิทธิ์ของแพลตฟอร์ม:</strong> แพลตฟอร์มขอสงวนสิทธิ์ในการลบสินค้า ซ่อนรายการ หรือระงับร้านค้าที่ละเมิดข้อตกลงโดยไม่ต้องแจ้งให้ทราบล่วงหน้า</li>
+                </ul>
+              </div>
+
+              <div>
+                <strong style={{ fontSize: '1.05rem' }}>3. ข้อจำกัดความรับผิดชอบ (Legal Liability)</strong>
+                <ul style={{ paddingLeft: '20px', marginTop: '8px', color: 'var(--text-secondary)' }}>
+                  <li><strong>สถานะตัวกลาง:</strong> แพลตฟอร์มเป็นเพียงพื้นที่จัดแสดงสินค้าและการสื่อสาร ไม่ได้มีส่วนร่วมในการทำธุรกรรม ผู้ขายต้องรับผิดชอบต่อคุณภาพสินค้า การจัดส่ง และบริการหลังการขายด้วยตนเอง 100%</li>
+                  <li><strong>การชดเชยความเสียหาย:</strong> แพลตฟอร์มจะไม่รับผิดชอบทางกฎหมายต่อความสูญเสีย ข้อพิพาท หรือความเสียหายใดๆ ที่เกิดขึ้นระหว่างผู้ซื้อและผู้ขาย</li>
+                </ul>
+              </div>
+
+              <div>
+                <strong style={{ fontSize: '1.05rem' }}>4. การจัดการความปลอดภัยของข้อมูล (Information Security)</strong>
+                <p style={{ marginTop: '8px', color: 'var(--text-secondary)' }}>
+                  แพลตฟอร์มมีระบบการจัดการความปลอดภัยของข้อมูลเพื่อปกป้องข้อมูลในระบบ ผู้ขายตกลงที่จะใช้ข้อมูลของลูกค้า (เช่น ชื่อ ที่อยู่จัดส่ง) เพื่อวัตถุประสงค์ในการดำเนินการตามคำสั่งซื้อเท่านั้น และห้ามนำไปเปิดเผยหรือใช้งานนอกเหนือจากนี้โดยเด็ดขาด
+                </p>
+              </div>
+            </div>
+
+            <button 
+              className="btn-primary" 
+              style={{ width: '100%', marginTop: '24px', padding: '12px', borderRadius: '99px' }}
+              onClick={() => setShowTermsModal(false)}
             >
               {t('close')}
             </button>

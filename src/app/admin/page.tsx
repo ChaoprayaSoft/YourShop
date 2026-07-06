@@ -109,6 +109,18 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+
+        <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => router.push('/admin/reports')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255, 107, 107, 0.1)', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
+              ⚠️
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>Reports (แจ้งปัญหา)</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>View issues reported by users</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
