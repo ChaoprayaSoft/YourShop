@@ -137,16 +137,16 @@ export default function AdminMarketsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {markets.map(market => (
-            <div key={market.id} className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{market.name}</h3>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>ID: {market.id}</div>
+            <div key={market.id} className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '4px', wordBreak: 'break-word' }}>{market.name}</h3>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', wordBreak: 'break-all' }}>ID: {market.id}</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 600, marginTop: '4px' }}>
                   {market.shopCount} {t('shops')}
                 </div>
               </div>
               <button 
-                style={{ padding: '8px 16px', background: 'rgba(255, 107, 107, 0.1)', color: 'var(--accent-color)', border: '1px solid rgba(255,107,107,0.3)', borderRadius: '8px', fontWeight: 600 }}
+                style={{ padding: '8px 16px', background: 'rgba(255, 107, 107, 0.1)', color: 'var(--accent-color)', border: '1px solid rgba(255,107,107,0.3)', borderRadius: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}
                 onClick={() => handleDelete(market.id, market.shopCount)}
               >
                 {t('delete')}
