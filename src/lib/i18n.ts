@@ -161,4 +161,15 @@ export const translations: TranslationDictionary = {
   reason: { en: 'Reason', th: 'เหตุผล' },
   unauthorized: { en: 'Unauthorized', th: 'ไม่มีสิทธิ์เข้าถึง' },
   back_to_dashboard: { en: 'Back to Dashboard', th: 'กลับไปหน้าจัดการร้าน' },
+  // Shop Rates Modal
+  rates: { en: 'Rates', th: 'อัตราค่าบริการ' },
+  shop_rates_title: { en: 'Shop Rates', th: 'อัตราค่าบริการ (Shop Rates)' },
+  first_login_title: { en: '🎁 First Login Bonus', th: '🎁 เริ่มต้นใช้งาน (First Login)' },
+  first_login_desc: { en: 'Free 2 product slots and 20 Coins', th: 'ฟรี 2 ช่องสินค้า และรับฟรี 20 Coins' },
+  maintenance_title: { en: '🏪 Maintenance Fee', th: '🏪 ค่าบำรุงรักษาร้าน (Maintenance Fee)' },
+  maintenance_desc: { en: 'Normal: 5 Coins / 30 days', th: 'ปกติ 5 Coins / 30 วัน' },
+  maintenance_promo: { en: '* Special! Complete 5 orders to reduce fee to 2 Coins / 30 days', th: '* พิเศษ! หากขายได้ครบ 5 ออเดอร์ ลดเหลือ 2 Coins / 30 วัน' },
+  buy_slot_title: { en: '📦 Buy Product Slot', th: '📦 เพิ่มช่องสินค้า (Buy Product Slot)' },
+  buy_slot_desc: { en: '5 Coins / 1 slot', th: '5 Coins / 1 ช่องสินค้า' },
+  close: { en: 'Close', th: 'ปิด (Close)' },
 };

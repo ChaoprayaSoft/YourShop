@@ -392,7 +392,7 @@ export default function ShopDashboard() {
                 style={{ background: 'var(--background-white)', color: 'var(--primary-color)', border: '1px solid var(--primary-color)', padding: '8px 16px', borderRadius: '99px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
                 onClick={() => setShowRateModal(true)}
               >
-                Rates
+                {t('rates')}
               </button>
             </div>
 
@@ -868,25 +868,25 @@ export default function ShopDashboard() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
           <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '24px', borderRadius: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.25rem', color: 'var(--primary-color)' }}>อัตราค่าบริการ (Shop Rates)</h2>
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--primary-color)' }}>{t('shop_rates_title')}</h2>
               <button style={{ fontWeight: 'bold', fontSize: '1.2rem', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowRateModal(false)}>✕</button>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.95rem' }}>
               <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '8px' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🎁 เริ่มต้นใช้งาน (First Login)</div>
-                <div style={{ color: 'var(--text-secondary)' }}>ฟรี 2 ช่องสินค้า และรับฟรี 20 Coins</div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{t('first_login_title')}</div>
+                <div style={{ color: 'var(--text-secondary)' }}>{t('first_login_desc')}</div>
               </div>
               
               <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '8px' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🏪 ค่าบำรุงรักษาร้าน (Maintenance Fee)</div>
-                <div style={{ color: 'var(--text-secondary)' }}>ปกติ 5 Coins / 30 วัน</div>
-                <div style={{ color: 'var(--primary-color)', marginTop: '4px', fontSize: '0.85rem' }}>* พิเศษ! หากขายได้ครบ 5 ออเดอร์ ลดเหลือ 2 Coins / 30 วัน</div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{t('maintenance_title')}</div>
+                <div style={{ color: 'var(--text-secondary)' }}>{t('maintenance_desc')}</div>
+                <div style={{ color: 'var(--primary-color)', marginTop: '4px', fontSize: '0.85rem' }}>{t('maintenance_promo')}</div>
               </div>
               
               <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '8px' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>📦 เพิ่มช่องสินค้า (Buy Product Slot)</div>
-                <div style={{ color: 'var(--text-secondary)' }}>5 Coins / 1 ช่องสินค้า</div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{t('buy_slot_title')}</div>
+                <div style={{ color: 'var(--text-secondary)' }}>{t('buy_slot_desc')}</div>
               </div>
             </div>
 
@@ -895,7 +895,7 @@ export default function ShopDashboard() {
               style={{ width: '100%', marginTop: '24px', padding: '12px', borderRadius: '99px' }}
               onClick={() => setShowRateModal(false)}
             >
-              ปิด (Close)
+              {t('close')}
             </button>
           </div>
         </div>
