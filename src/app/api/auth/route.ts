@@ -39,6 +39,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ customToken });
   } catch (error: any) {
     console.error('Auth API Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error?.message || String(error) || 'Unknown error';
+    // Use status 400 so Vercel doesn't intercept it with a generic 500 HTML page if that was happening
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 }

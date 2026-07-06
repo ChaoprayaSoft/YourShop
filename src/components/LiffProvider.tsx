@@ -115,7 +115,10 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
           });
 
           if (!authRes.ok) {
-            const errText = await authRes.text();
+            let errText = await authRes.text();
+            if (errText.includes('<!DOCTYPE html>')) {
+              errText = `Server returned an HTML error page. (Status ${authRes.status}). Check Vercel logs.`;
+            }
             log('Failed to fetch Custom Token: ' + errText);
             throw new Error('Firebase Auth Failed: ' + errText);
           } else {
