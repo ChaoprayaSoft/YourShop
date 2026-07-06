@@ -26,8 +26,9 @@ service cloud.firestore {
       // Anyone can view shops
       allow read: if true;
       // Only the shop owner or admin can create/update the shop
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.ownerId;
-      allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.ownerId || isAdmin());
+      // Note: shopId IS the owner's userId
+      allow create: if isAuthenticated() && request.auth.uid == shopId;
+      allow update, delete: if isAuthenticated() && (request.auth.uid == shopId || isAdmin());
     }
 
     // Products Collection
@@ -35,7 +36,7 @@ service cloud.firestore {
       // Anyone can view products
       allow read: if true;
       // Only the shop owner or admin can write
-      allow write: if isAuthenticated() && (request.auth.uid == resource.data.shopOwnerId || isAdmin());
+      allow write: if isAuthenticated() && (request.auth.uid == resource.data.shopId || isAdmin());
     }
 
     // Orders Collection
@@ -43,7 +44,7 @@ service cloud.firestore {
       // Buyers can read their own orders. Shop owners can read orders for their shop. Admin can read all.
       allow read: if isAuthenticated() && (
         request.auth.uid == resource.data.buyerId || 
-        request.auth.uid == resource.data.shopOwnerId || 
+        request.auth.uid == resource.data.shopId || 
         isAdmin()
       );
       // Anyone logged in can create an order (as a buyer)
@@ -51,7 +52,7 @@ service cloud.firestore {
       // Only shop owner, buyer (for cancellation), or admin can update an order
       allow update: if isAuthenticated() && (
         request.auth.uid == resource.data.buyerId || 
-        request.auth.uid == resource.data.shopOwnerId || 
+        request.auth.uid == resource.data.shopId || 
         isAdmin()
       );
       // Only admin can delete orders
