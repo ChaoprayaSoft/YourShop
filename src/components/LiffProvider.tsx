@@ -115,13 +115,17 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
           });
 
           if (!authRes.ok) {
-            log('Failed to fetch Custom Token: ' + await authRes.text());
+            const errText = await authRes.text();
+            log('Failed to fetch Custom Token: ' + errText);
+            throw new Error('Firebase Auth Failed: ' + errText);
           } else {
             const { customToken } = await authRes.json();
             if (customToken) {
               log('Signing into Firebase...');
               await signInWithCustomToken(auth, customToken);
               log('Firebase Auth successful!');
+            } else {
+              throw new Error('No custom token received');
             }
           }
         }

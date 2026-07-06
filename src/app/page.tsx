@@ -124,8 +124,11 @@ export default function Home() {
           setCheckingProfile(false);
           getShop(profile.userId).then(shop => {
             if (shop) setExistingShopId(profile.userId);
-          });
+          }).catch(console.error);
         }
+      }).catch(err => {
+        console.error('Failed to get user profile', err);
+        setCheckingProfile(false);
       });
     }
   }, [isInitialized, profile, router]);
