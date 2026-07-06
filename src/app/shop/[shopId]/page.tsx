@@ -197,7 +197,10 @@ export default function ShopDashboard() {
       if (targetUser && targetUser.email) {
         await fetch('/api/notify', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-api-secret': process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+          },
           body: JSON.stringify({
             order,
             type,
@@ -235,25 +238,30 @@ export default function ShopDashboard() {
       const user = await getUserProfile(profile.userId);
       const buyerAddress = user?.address || 'No delivery address provided';
 
-      const totalPrice = cart.reduce((sum, item) => {
-        const choicesTotal = item.selectedChoices?.reduce((cSum, c) => cSum + c.price, 0) || 0;
-        return sum + ((item.product.price + choicesTotal) * item.quantity);
-      }, 0);
+      const res = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-secret': process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+        },
+        body: JSON.stringify({
+          shopId,
+          groupId: namespace || 'direct',
+          buyerId: profile.userId,
+          buyerName: profile.displayName,
+          buyerAddress,
+          items: cart
+        })
+      });
 
-      const orderData = {
-        shopId,
-        groupId: namespace || 'direct',
-        buyerId: profile.userId,
-        buyerName: profile.displayName,
-        buyerAddress,
-        items: cart,
-        totalPrice
-      };
+      if (!res.ok) {
+        throw new Error('Failed to place order securely');
+      }
       
-      const orderId = await placeOrder(orderData);
+      const { order } = await res.json();
       
       // Notify Shop Owner
-      await sendNotification({ ...orderData, id: orderId, status: 'pending', createdAt: new Date() }, 'placed');
+      await sendNotification(order, 'placed');
 
       setCart([]);
       setShowCartModal(false);

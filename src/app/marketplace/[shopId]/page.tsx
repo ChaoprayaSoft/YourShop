@@ -55,16 +55,42 @@ export default function MarketplaceShopPage() {
         quantity
       }));
       
-      const totalPrice = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-
-      await placeOrder({
-        shopId,
-        groupId,
-        buyerId: profile.userId,
-        buyerName: profile.displayName,
-        items,
-        totalPrice
+      const res = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-secret': process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+        },
+        body: JSON.stringify({
+          shopId,
+          groupId,
+          buyerId: profile.userId,
+          buyerName: profile.displayName,
+          items
+        })
       });
+
+      if (!res.ok) {
+        throw new Error('Failed to place order securely');
+      }
+      
+      const { order } = await res.json();
+
+      const shopOwnerEmail = (shop as any).ownerEmail;
+      if (shopOwnerEmail) {
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-api-secret': process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+          },
+          body: JSON.stringify({
+            type: 'placed',
+            recipientEmail: shopOwnerEmail,
+            order: order
+          })
+        });
+      }
 
       alert('Order placed successfully!');
       setCart({});

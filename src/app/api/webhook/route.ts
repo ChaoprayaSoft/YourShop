@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { messagingApi } from '@line/bot-sdk';
 import { createMarket, getMarket } from '@/lib/db/markets';
 import { getUserProfile } from '@/lib/db/users';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
+import crypto from 'crypto';
 
 const client = new messagingApi.MessagingApiClient({
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || ''
@@ -23,7 +23,24 @@ export async function POST(req: Request) {
   let rawBody = '';
   try {
     rawBody = await req.text();
-    console.log('Webhook received:', rawBody);
+
+    // Validate LINE signature
+    const signature = req.headers.get('x-line-signature');
+    const channelSecret = process.env.LINE_CHANNEL_SECRET;
+    
+    if (!signature || !channelSecret) {
+      console.error('Missing signature or channel secret');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const hash = crypto.createHmac('sha256', channelSecret).update(rawBody).digest('base64');
+    
+    if (hash !== signature) {
+      console.error('Invalid signature');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    console.log('Webhook received and verified');
 
     const body = JSON.parse(rawBody);
     const events = body.events;
@@ -80,7 +97,11 @@ export async function POST(req: Request) {
         });
 
         // Then save to Firebase (can take longer)
-        await createMarket(groupId, marketName);
+        await adminDb.collection('markets').doc(groupId).set({
+          id: groupId,
+          name: marketName,
+          createdAt: new Date(),
+        });
         console.log('Market created successfully');
 
       } else if (normalizedText.startsWith('/market ads ')) {
@@ -96,9 +117,10 @@ export async function POST(req: Request) {
         }
 
         // Find shop by name in this market
-        const shopsRef = collection(db, 'shops');
-        const q = query(shopsRef, where('marketId', '==', groupId), where('name', '==', shopName));
-        const shopsSnap = await getDocs(q);
+        const shopsSnap = await adminDb.collection('shops')
+          .where('marketId', '==', groupId)
+          .where('name', '==', shopName)
+          .get();
 
         if (shopsSnap.empty) {
           await client.replyMessage({

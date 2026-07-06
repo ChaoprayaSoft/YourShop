@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    // Replace with your actual Admin LINE User ID (e.g. from NEXT_PUBLIC_ADMIN_USER_ID)
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == 'U92083b4c10a4e7e6d9b4b09b552382e2'; // Replace this with actual admin ID
+    }
+
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Anyone can read profiles
+      allow read: if isAuthenticated();
+      // Users can only create/update their own profile, admin can do everything
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Shops Collection
+    match /shops/{shopId} {
+      // Anyone can view shops
+      allow read: if true;
+      // Only the shop owner or admin can create/update the shop
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.ownerId;
+      allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.ownerId || isAdmin());
+    }
+
+    // Products Collection
+    match /products/{productId} {
+      // Anyone can view products
+      allow read: if true;
+      // Only the shop owner or admin can write
+      allow write: if isAuthenticated() && (request.auth.uid == resource.data.shopOwnerId || isAdmin());
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      // Buyers can read their own orders. Shop owners can read orders for their shop. Admin can read all.
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.buyerId || 
+        request.auth.uid == resource.data.shopOwnerId || 
+        isAdmin()
+      );
+      // Anyone logged in can create an order (as a buyer)
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.buyerId;
+      // Only shop owner, buyer (for cancellation), or admin can update an order
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.buyerId || 
+        request.auth.uid == resource.data.shopOwnerId || 
+        isAdmin()
+      );
+      // Only admin can delete orders
+      allow delete: if isAdmin();
+    }
+
+    // Markets Collection
+    match /markets/{marketId} {
+      // Anyone can view markets
+      allow read: if true;
+      // Only admin or the backend webhook (which bypasses rules) can write
+      allow write: if isAdmin();
+    }
+
+    // Reports Collection
+    match /reports/{reportId} {
+      // Admin can read everything
+      allow read: if isAdmin();
+      // Any logged-in user can create a report
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+      // No one can update or delete reports except through admin panel
+      allow update, delete: if isAdmin();
+    }
+
+    // Topups Collection
+    match /topups/{topupId} {
+      // Users can read their own topups, admin can read all
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      // Users can request a topup
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+      // Only admin can approve/reject
+      allow update, delete: if isAdmin();
+    }
+  }
+}

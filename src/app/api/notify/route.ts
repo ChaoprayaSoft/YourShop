@@ -6,6 +6,11 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 export async function POST(req: Request) {
   try {
+    const apiSecret = req.headers.get('x-api-secret');
+    if (process.env.API_SECRET_KEY && apiSecret !== process.env.API_SECRET_KEY) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { type, recipientEmail, order } = body;
 

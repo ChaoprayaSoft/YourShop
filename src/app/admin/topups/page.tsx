@@ -58,7 +58,10 @@ export default function AdminTopUpsPage() {
       if (req.userEmail) {
         await fetch('/api/notify', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-api-secret': process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+          },
           body: JSON.stringify({
             type: 'topup_approved',
             recipientEmail: req.userEmail,
@@ -90,7 +93,10 @@ export default function AdminTopUpsPage() {
       if (req.userEmail) {
         await fetch('/api/notify', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-api-secret': process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+          },
           body: JSON.stringify({
             type: 'topup_rejected',
             recipientEmail: req.userEmail,

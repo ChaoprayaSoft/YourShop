@@ -67,7 +67,10 @@ export default function MyOrdersPage() {
       if (shopOwner && shopOwner.email) {
         await fetch('/api/notify', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-api-secret': process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+          },
           body: JSON.stringify({
             order,
             type: 'canceled',
