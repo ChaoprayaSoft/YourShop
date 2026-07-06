@@ -404,8 +404,7 @@ export default function ShopDashboard() {
               {t('add_product')}
             </button>
             <button 
-              className="btn-secondary" 
-              style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', width: '120px' }}
+              style={{ padding: '6px 12px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: 'linear-gradient(135deg, #FFB75E 0%, #ED8F03 100%)', color: 'white', borderRadius: '8px', width: '120px', boxShadow: '0 2px 8px rgba(237, 143, 3, 0.3)', cursor: 'pointer' }}
               onClick={async () => {
                 if ((ownerProfile?.coins || 0) < 5) {
                   alert('เหรียญไม่พอ กรุณาเติมเหรียญ (Not enough coins)');
