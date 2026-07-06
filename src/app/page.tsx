@@ -37,6 +37,9 @@ export default function Home() {
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   
+  const [marketDropdownOpen, setMarketDropdownOpen] = useState(false);
+  const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
+  
   const [markets, setMarkets] = useState<Market[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
 
@@ -352,37 +355,60 @@ export default function Home() {
             </div>
             
             <form onSubmit={handleReportSubmit} style={{ overflowY: 'auto', flex: 1, paddingRight: '8px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>ตลาด (Market)</label>
-                <select 
-                  value={reportMarket} 
-                  onChange={e => setReportMarket(e.target.value)} 
+                <div 
                   className="input-field" 
-                  style={{ cursor: 'pointer', appearance: 'none', background: 'var(--background-white) url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center / 16px', color: reportMarket ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                  required
+                  style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--background-white)', color: reportMarket ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                  onClick={() => { setMarketDropdownOpen(!marketDropdownOpen); setShopDropdownOpen(false); }}
                 >
-                  <option value="" disabled>เลือกตลาด...</option>
-                  {markets.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
+                  {reportMarket ? markets.find(m => m.id === reportMarket)?.name : 'เลือกตลาด...'}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: marketDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                {marketDropdownOpen && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', background: 'white', border: '1px solid #ddd', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 10, maxHeight: '200px', overflowY: 'auto' }}>
+                    {markets.map(m => (
+                      <div 
+                        key={m.id} 
+                        style={{ padding: '12px 16px', cursor: 'pointer', background: reportMarket === m.id ? 'rgba(123, 97, 255, 0.05)' : 'white', color: reportMarket === m.id ? 'var(--primary-color)' : 'var(--text-primary)', fontWeight: reportMarket === m.id ? 600 : 400, borderBottom: '1px solid #f5f5f5' }}
+                        onClick={() => { setReportMarket(m.id); setReportShop(''); setMarketDropdownOpen(false); }}
+                      >
+                        {m.name}
+                      </div>
+                    ))}
+                    {markets.length === 0 && <div style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>กำลังโหลดตลาด...</div>}
+                  </div>
+                )}
               </div>
               
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>ร้านค้า (Shop)</label>
-                <select 
-                  value={reportShop} 
-                  onChange={e => setReportShop(e.target.value)} 
+                <div 
                   className="input-field" 
-                  style={{ cursor: reportMarket ? 'pointer' : 'not-allowed', appearance: 'none', background: 'var(--background-white) url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center / 16px', opacity: reportMarket ? 1 : 0.6, color: reportShop ? 'var(--text-primary)' : 'var(--text-secondary)' }} 
-                  required
-                  disabled={!reportMarket}
+                  style={{ cursor: reportMarket ? 'pointer' : 'not-allowed', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--background-white)', opacity: reportMarket ? 1 : 0.6, color: reportShop ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                  onClick={() => { if(reportMarket) { setShopDropdownOpen(!shopDropdownOpen); setMarketDropdownOpen(false); } }}
                 >
-                  <option value="" disabled>เลือกร้านค้า...</option>
-                  {shops.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
+                  {reportShop ? shops.find(s => s.id === reportShop)?.name : 'เลือกร้านค้า...'}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: shopDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                {shopDropdownOpen && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', background: 'white', border: '1px solid #ddd', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 10, maxHeight: '200px', overflowY: 'auto' }}>
+                    {shops.map(s => (
+                      <div 
+                        key={s.id} 
+                        style={{ padding: '12px 16px', cursor: 'pointer', background: reportShop === s.id ? 'rgba(123, 97, 255, 0.05)' : 'white', color: reportShop === s.id ? 'var(--primary-color)' : 'var(--text-primary)', fontWeight: reportShop === s.id ? 600 : 400, borderBottom: '1px solid #f5f5f5' }}
+                        onClick={() => { setReportShop(s.id); setShopDropdownOpen(false); }}
+                      >
+                        {s.name}
+                      </div>
+                    ))}
+                    {shops.length === 0 && <div style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>ไม่มีข้อมูลร้านค้าในตลาดนี้</div>}
+                  </div>
+                )}
               </div>
 
               <div>
