@@ -91,19 +91,27 @@ export default function ShopDashboard() {
   const maintenanceFee = completedOrdersCount >= 5 ? 2 : 5;
   
   const getDueDateMillis = () => {
-    if (!shop || !shop.maintenanceFeeDueDate) {
-      return Date.now() + 30 * 24 * 60 * 60 * 1000;
+    if (shop && shop.maintenanceFeeDueDate) {
+      if (typeof shop.maintenanceFeeDueDate.toMillis === 'function') {
+        return shop.maintenanceFeeDueDate.toMillis();
+      }
+      if (typeof shop.maintenanceFeeDueDate.getTime === 'function') {
+        return shop.maintenanceFeeDueDate.getTime();
+      }
+      if (typeof shop.maintenanceFeeDueDate === 'number') {
+        return shop.maintenanceFeeDueDate;
+      }
     }
-    if (typeof shop.maintenanceFeeDueDate.toMillis === 'function') {
-      return shop.maintenanceFeeDueDate.toMillis();
+    
+    // Fallback for shops created before the due date feature was added
+    if (shop && shop.createdAt) {
+      const createdMillis = typeof shop.createdAt.toMillis === 'function' 
+        ? shop.createdAt.toMillis() 
+        : (typeof shop.createdAt.getTime === 'function' ? shop.createdAt.getTime() : (typeof shop.createdAt === 'number' ? shop.createdAt : Date.now()));
+      return createdMillis + 30 * 24 * 60 * 60 * 1000;
     }
-    if (typeof shop.maintenanceFeeDueDate.getTime === 'function') {
-      return shop.maintenanceFeeDueDate.getTime();
-    }
-    if (typeof shop.maintenanceFeeDueDate === 'number') {
-      return shop.maintenanceFeeDueDate;
-    }
-    return Date.now();
+
+    return Date.now() + 30 * 24 * 60 * 60 * 1000;
   };
   
   const dueDateMillis = getDueDateMillis();
