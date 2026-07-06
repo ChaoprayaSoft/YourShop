@@ -302,13 +302,13 @@ export default function EditProductPage() {
               style={{ 
                 flex: 1, 
                 padding: '16px', 
-                backgroundColor: 'var(--primary-color)', 
-                color: '#FFB74D', 
+                backgroundColor: '#FF5252', 
+                color: 'white', 
                 borderRadius: '30px', 
                 fontWeight: 'bold', 
                 fontSize: '1.1rem', 
                 border: 'none', 
-                boxShadow: '0 4px 12px rgba(123, 97, 255, 0.3)',
+                boxShadow: '0 4px 12px rgba(255, 82, 82, 0.3)',
                 cursor: 'pointer'
               }}
               onClick={handleDelete}

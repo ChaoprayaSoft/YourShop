@@ -116,7 +116,7 @@ export async function POST(req: Request) {
           replyToken: event.replyToken,
           messages: [{
             type: 'text',
-            text: `ร้าน ${shopName} พร้อมให้บริการแล้วค่ะ/ครับ!\n${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}`
+            text: `${shopName} พร้อมให้บริการแล้วค่ะ/ครับ!\n\n${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}`
           }]
         });
 
