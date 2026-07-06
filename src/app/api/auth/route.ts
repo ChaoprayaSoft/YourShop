@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { adminAuth } from '@/lib/firebase-admin';
 
 export async function POST(req: Request) {
   try {
@@ -29,8 +28,10 @@ export async function POST(req: Request) {
     }
 
     // Check if firebase-admin is properly initialized
+    const { adminAuth } = await import('@/lib/firebase-admin');
+    
     if (!adminAuth) {
-      throw new Error('Firebase Admin Auth is not initialized on the server.');
+      throw new Error('Firebase Admin Auth is not initialized on the server. Check your environment variables.');
     }
 
     // Mint a Firebase Custom Token
