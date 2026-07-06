@@ -295,20 +295,6 @@ export default function Home() {
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{t('my_orders_desc')}</p>
             </div>
           </div>
-
-          <div
-            className="glass-panel hover-card"
-            style={{ padding: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px' }}
-            onClick={() => setShowReportModal(true)}
-          >
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255, 107, 107, 0.1)', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
-              ⚠️
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px', color: 'var(--accent-color)' }}>แจ้งปัญหา (Report Issue)</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>พบปัญหาการใช้งานหรือข้อร้องเรียน</p>
-            </div>
-          </div>
         </div>
 
         {/* Seller Section */}
@@ -321,6 +307,21 @@ export default function Home() {
               <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>{existingShopId ? t('manage_shop') : t('create_shop')}</h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{existingShopId ? t('manage_shop_desc') : t('create_shop_desc')}</p>
             </div>
+          </div>
+        </div>
+
+        {/* Support Section */}
+        <div
+          className="glass-panel hover-card"
+          style={{ padding: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px' }}
+          onClick={() => setShowReportModal(true)}
+        >
+          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255, 107, 107, 0.1)', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
+            ⚠️
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '4px', color: 'var(--accent-color)' }}>แจ้งปัญหา (Report Issue)</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>พบปัญหาการใช้งานหรือข้อร้องเรียน</p>
           </div>
         </div>
 
@@ -352,14 +353,15 @@ export default function Home() {
             
             <form onSubmit={handleReportSubmit} style={{ overflowY: 'auto', flex: 1, paddingRight: '8px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem' }}>ตลาด (Market)</label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>ตลาด (Market)</label>
                 <select 
                   value={reportMarket} 
                   onChange={e => setReportMarket(e.target.value)} 
                   className="input-field" 
+                  style={{ cursor: 'pointer', appearance: 'none', background: 'var(--background-white) url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center / 16px', color: reportMarket ? 'var(--text-primary)' : 'var(--text-secondary)' }}
                   required
                 >
-                  <option value="">เลือกตลาด...</option>
+                  <option value="" disabled>เลือกตลาด...</option>
                   {markets.map(m => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}
@@ -367,15 +369,16 @@ export default function Home() {
               </div>
               
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem' }}>ร้านค้า (Shop)</label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>ร้านค้า (Shop)</label>
                 <select 
                   value={reportShop} 
                   onChange={e => setReportShop(e.target.value)} 
                   className="input-field" 
+                  style={{ cursor: reportMarket ? 'pointer' : 'not-allowed', appearance: 'none', background: 'var(--background-white) url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center / 16px', opacity: reportMarket ? 1 : 0.6, color: reportShop ? 'var(--text-primary)' : 'var(--text-secondary)' }} 
                   required
                   disabled={!reportMarket}
                 >
-                  <option value="">เลือกร้านค้า...</option>
+                  <option value="" disabled>เลือกร้านค้า...</option>
                   {shops.map(s => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
@@ -383,7 +386,7 @@ export default function Home() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem' }}>รายละเอียดปัญหา (Message)</label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>รายละเอียดปัญหา (Message)</label>
                 <textarea
                   value={reportMessage}
                   onChange={e => setReportMessage(e.target.value)}
@@ -396,18 +399,34 @@ export default function Home() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem' }}>รูปภาพประกอบ (Optional)</label>
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  onChange={e => {
-                    if (e.target.files && e.target.files[0]) {
-                      setReportFile(e.target.files[0]);
-                    }
-                  }}
-                  className="input-field"
-                  style={{ padding: '8px' }}
-                />
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>รูปภาพประกอบ (Optional)</label>
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={e => {
+                      if (e.target.files && e.target.files[0]) {
+                        setReportFile(e.target.files[0]);
+                      }
+                    }}
+                    style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 2 }}
+                  />
+                  <div style={{ padding: '24px', border: '2px dashed var(--primary-color)', borderRadius: '12px', textAlign: 'center', background: 'rgba(123, 97, 255, 0.03)', transition: 'all 0.2s ease', color: 'var(--text-secondary)' }}>
+                    {reportFile ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(56, 218, 114, 0.1)', color: 'var(--secondary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>✓</div>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{reportFile.name}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--primary-color)' }}>แตะเพื่อเปลี่ยนรูปภาพ</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '2rem' }}>📸</div>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>แตะเพื่ออัพโหลดรูปภาพ</div>
+                        <div style={{ fontSize: '0.8rem' }}>รองรับไฟล์ JPG, PNG</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div style={{ marginTop: '8px' }}>
