@@ -120,16 +120,15 @@ export async function POST(req: Request) {
           continue;
         }
 
-        // Find shop by name in this market
+        // Find shop by name globally so users can advertise their shop in any group
         const shopsSnap = await adminDb.collection('shops')
-          .where('marketId', '==', groupId)
           .where('name', '==', shopName)
           .get();
 
         if (shopsSnap.empty) {
           await client.replyMessage({
             replyToken: event.replyToken,
-            messages: [{ type: 'text', text: `ไม่พบร้านค้าชื่อ '${shopName}' ในตลาดนี้` }]
+            messages: [{ type: 'text', text: `ไม่พบร้านค้าชื่อ '${shopName}' ในระบบ` }]
           });
           continue;
         }
