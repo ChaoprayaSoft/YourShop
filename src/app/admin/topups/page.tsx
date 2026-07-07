@@ -7,12 +7,14 @@ import { getPendingTopUpRequests, updateTopUpRequestStatus, TopUpRequest } from 
 import { getUserProfile, updateUserProfile } from '@/lib/db/users';
 import { useLanguage } from '@/components/LanguageProvider';
 
+type EnrichedTopUpRequest = TopUpRequest & { shopName?: string; marketName?: string; };
+
 export default function AdminTopUpsPage() {
   const { profile } = useLiff();
   const router = useRouter();
   const { t } = useLanguage();
   
-  const [requests, setRequests] = useState<TopUpRequest[]>([]);
+  const [requests, setRequests] = useState<EnrichedTopUpRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -27,7 +29,32 @@ export default function AdminTopUpsPage() {
     const fetchData = async () => {
       try {
         const data = await getPendingTopUpRequests();
-        setRequests(data);
+        
+        // Enrich data with shop and market info
+        const { getShop } = await import('@/lib/db/shops');
+        const { getMarket } = await import('@/lib/db/markets');
+        
+        const enrichedData = await Promise.all(data.map(async (req) => {
+          let shopName = '';
+          let marketName = '';
+          
+          try {
+            const shop = await getShop(req.userId);
+            if (shop) {
+              shopName = shop.name;
+              if (shop.marketId) {
+                const market = await getMarket(shop.marketId);
+                if (market) marketName = market.name;
+              }
+            }
+          } catch (e) {
+            console.error('Error fetching shop for topup', e);
+          }
+          
+          return { ...req, shopName, marketName };
+        }));
+
+        setRequests(enrichedData);
       } catch (error) {
         console.error('Failed to fetch data', error);
       } finally {
@@ -41,7 +68,7 @@ export default function AdminTopUpsPage() {
   if (!profile || profile.userId !== process.env.NEXT_PUBLIC_ADMIN_USER_ID) return null;
   if (loading) return <div style={{ padding: '24px', textAlign: 'center' }}>{t('loading')}</div>;
 
-  const handleApprove = async (req: TopUpRequest) => {
+  const handleApprove = async (req: EnrichedTopUpRequest) => {
     if (!confirm('Approve this top-up?')) return;
     setProcessing(true);
     try {
@@ -79,7 +106,7 @@ export default function AdminTopUpsPage() {
     }
   };
 
-  const handleReject = async (req: TopUpRequest) => {
+  const handleReject = async (req: EnrichedTopUpRequest) => {
     if (!rejectReason) {
       alert('Please enter a reason');
       return;
@@ -136,7 +163,17 @@ export default function AdminTopUpsPage() {
                   {req.createdAt?.toDate ? req.createdAt.toDate().toLocaleString() : ''}
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>User: {req.userName}</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                {req.shopName && (
+                  <div style={{ fontSize: '0.95rem', color: 'var(--primary-color)', fontWeight: 600, marginTop: '2px' }}>
+                    Shop: {req.shopName}
+                  </div>
+                )}
+                {req.marketName && (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--secondary-color)', marginTop: '2px' }}>
+                    Market: {req.marketName}
+                  </div>
+                )}
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                   Email: {req.userEmail || 'N/A'}
                 </div>
               </div>
