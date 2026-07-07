@@ -838,8 +838,18 @@ export default function ShopDashboard() {
             <div style={{ padding: '12px', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '8px', marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
               <strong>ตัวอย่างที่บอทจะส่ง:</strong>
               <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto', paddingRight: '4px' }}>
+                <div style={{ marginBottom: '8px' }}>
+                  {shop.name}
+                  <br /><br />
+                  กลุ่ม (ชื่อตลาดของคุณ) พร้อมให้บริการแล้วค่ะ/ครับ!
+                </div>
                 {adMessage || '(ข้อความโฆษณาของคุณ)'}
-                <div style={{ marginTop: '8px', color: 'var(--primary-color)' }}>เชิญแวะดูและสั่งซื้อได้ที่<br/>https://liff.line.me/{process.env.NEXT_PUBLIC_LIFF_ID}/marketplace/{shopId}</div>
+                <div style={{ marginTop: '8px', color: 'var(--primary-color)' }}>
+                  <br/>
+                  เชิญแวะดูและสั่งซื้อได้ที่
+                  <br/>
+                  https://liff.line.me/{process.env.NEXT_PUBLIC_LIFF_ID}?shopId={shopId}&marketId=(รหัสกลุ่ม)
+                </div>
               </div>
             </div>
 

@@ -31,13 +31,13 @@ export async function POST(req: Request) {
     // Validate LINE signature
     const signature = req.headers.get('x-line-signature');
     const channelSecret = process.env.LINE_CHANNEL_SECRET;
-    
+
     if (!signature || !channelSecret) {
       console.warn('Missing signature or channel secret, skipping validation');
       // Temporarily allow without signature if secret is missing to unblock the user
     } else {
       const hash = crypto.createHmac('sha256', channelSecret).update(bodyBuffer).digest('base64');
-      
+
       if (hash !== signature) {
         console.error(`Invalid signature. Expected: ${signature}, Got: ${hash}`);
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -137,10 +137,10 @@ export async function POST(req: Request) {
         }
 
         if (!shopData) {
-          const errorMsg = shopName 
-            ? `ไม่พบร้านค้าที่ชื่อคล้าย '${shopName}' ในระบบ โปรดตรวจสอบตัวสะกด` 
+          const errorMsg = shopName
+            ? `ไม่พบร้านค้าที่ชื่อคล้าย '${shopName}' ในระบบ โปรดตรวจสอบตัวสะกด`
             : `ไม่พบร้านค้าของคุณในระบบ โปรดสร้างร้านค้าก่อน`;
-            
+
           await client.replyMessage({
             replyToken: event.replyToken,
             messages: [{ type: 'text', text: errorMsg }]
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
         const actualShopName = shopData.name;
         const adMessage = shopData.adMessage || `ร้าน ${actualShopName} ยินดีให้บริการ!`;
         const shopLink = `https://liff.line.me/${liffId}?shopId=${shopData.id}&marketId=${groupId}`;
-        
+
         let marketNameDisplay = 'ตลาดของเรา';
         if (shopData.marketId) {
           const marketSnap = await adminDb.collection('markets').doc(shopData.marketId).get();
@@ -164,7 +164,7 @@ export async function POST(req: Request) {
           replyToken: event.replyToken,
           messages: [{
             type: 'text',
-            text: `${shopName} แห่ง ${marketNameDisplay} พร้อมให้บริการแล้วค่ะ/ครับ!\n\n${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}`
+            text: `${shopName} \n\n กลุ่ม ${marketNameDisplay} พร้อมให้บริการแล้วค่ะ/ครับ!\n\n${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}`
           }]
         });
 
