@@ -14,6 +14,7 @@ export async function GET() {
   return NextResponse.json({
     status: 'Webhook is alive!',
     hasToken: !!process.env.LINE_CHANNEL_ACCESS_TOKEN,
+    hasChannelSecret: !!process.env.LINE_CHANNEL_SECRET,
     hasLiffId: !!process.env.NEXT_PUBLIC_LIFF_ID,
     hasFirebaseProject: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   });
