@@ -158,6 +158,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('Webhook Error:', error);
     console.error('Raw body was:', rawBody);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error?.message || String(error) || 'Unknown error';
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 }
