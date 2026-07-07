@@ -108,33 +108,48 @@ export async function POST(req: Request) {
         });
         console.log('Market created successfully');
 
-      } else if (normalizedText.startsWith('/market ads ')) {
-        const prefixLength = '/market ads '.length;
+      } else if (normalizedText.startsWith('/market ads')) {
+        const prefixLength = '/market ads'.length;
         const shopName = text.substring(prefixLength).trim();
 
+        let shopData = null;
+
         if (!shopName) {
+          // If no name provided, automatically advertise the user's own shop!
+          const userId = event.source.userId;
+          if (userId) {
+            const userShopSnap = await adminDb.collection('shops').doc(userId).get();
+            if (userShopSnap.exists) {
+              shopData = userShopSnap.data();
+            }
+          }
+        } else {
+          // Find shop by fuzzy name match globally to prevent exact-match failures
+          const shopsSnap = await adminDb.collection('shops').get();
+          for (const doc of shopsSnap.docs) {
+            const data = doc.data();
+            // Case-insensitive partial match
+            if (data.name && data.name.toLowerCase().includes(shopName.toLowerCase())) {
+              shopData = data;
+              break;
+            }
+          }
+        }
+
+        if (!shopData) {
+          const errorMsg = shopName 
+            ? `ไม่พบร้านค้าที่ชื่อคล้าย '${shopName}' ในระบบ โปรดตรวจสอบตัวสะกด` 
+            : `ไม่พบร้านค้าของคุณในระบบ โปรดสร้างร้านค้าก่อน`;
+            
           await client.replyMessage({
             replyToken: event.replyToken,
-            messages: [{ type: 'text', text: 'กรุณาระบุชื่อร้านค้า เช่น /market ads ร้านป้าสม' }]
+            messages: [{ type: 'text', text: errorMsg }]
           });
           continue;
         }
 
-        // Find shop by name globally so users can advertise their shop in any group
-        const shopsSnap = await adminDb.collection('shops')
-          .where('name', '==', shopName)
-          .get();
-
-        if (shopsSnap.empty) {
-          await client.replyMessage({
-            replyToken: event.replyToken,
-            messages: [{ type: 'text', text: `ไม่พบร้านค้าชื่อ '${shopName}' ในระบบ` }]
-          });
-          continue;
-        }
-
-        const shopData = shopsSnap.docs[0].data();
-        const adMessage = shopData.adMessage || `ร้าน ${shopName} ยินดีให้บริการ!`;
+        const actualShopName = shopData.name;
+        const adMessage = shopData.adMessage || `ร้าน ${actualShopName} ยินดีให้บริการ!`;
         const shopLink = `https://liff.line.me/${liffId}?shopId=${shopData.id}&marketId=${groupId}`;
         
         let marketNameDisplay = 'ตลาดของเรา';
