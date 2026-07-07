@@ -138,8 +138,8 @@ export async function POST(req: Request) {
         const shopLink = `https://liff.line.me/${liffId}?shopId=${shopData.id}&marketId=${groupId}`;
         
         let marketNameDisplay = 'ตลาดของเรา';
-        if (groupId) {
-          const marketSnap = await adminDb.collection('markets').doc(groupId).get();
+        if (shopData.marketId) {
+          const marketSnap = await adminDb.collection('markets').doc(shopData.marketId).get();
           if (marketSnap.exists) {
             marketNameDisplay = marketSnap.data()?.name || 'ตลาดของเรา';
           }
