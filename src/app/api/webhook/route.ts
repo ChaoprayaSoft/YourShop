@@ -34,10 +34,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const hash = crypto.createHmac('sha256', channelSecret).update(rawBody).digest('base64');
+    // Explicitly use utf8 to avoid encoding mismatches
+    const hash = crypto.createHmac('sha256', channelSecret).update(rawBody, 'utf8').digest('base64');
     
     if (hash !== signature) {
-      console.error('Invalid signature');
+      console.error(`Invalid signature. Expected: ${signature}, Got: ${hash}`);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -60,12 +61,13 @@ export async function POST(req: Request) {
       }
 
       const text = event.message.text.trim();
-      const groupId = event.source.groupId || event.source.roomId;
+      // Allow 1-on-1 chats by falling back to userId if no groupId or roomId is present
+      const groupId = event.source.groupId || event.source.roomId || event.source.userId;
 
-      console.log(`Text: "${text}", GroupId: ${groupId}, Source type: ${event.source.type}`);
+      console.log(`Text: "${text}", GroupId/UserId: ${groupId}, Source type: ${event.source.type}`);
 
       if (!groupId) {
-        console.log('No groupId found, skipping');
+        console.log('No groupId or userId found, skipping');
         continue;
       }
 

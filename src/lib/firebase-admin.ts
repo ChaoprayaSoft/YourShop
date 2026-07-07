@@ -1,9 +1,7 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
 
 let adminDb: any = null;
-let adminAuth: any = null;
 
 if (!getApps().length) {
   try {
@@ -16,7 +14,6 @@ if (!getApps().length) {
         }),
       });
       adminDb = getFirestore();
-      adminAuth = getAuth();
       console.log('Firebase Admin initialized successfully.');
     } else {
       console.warn('Firebase Admin not initialized: Missing FIREBASE_PRIVATE_KEY');
@@ -26,7 +23,6 @@ if (!getApps().length) {
   }
 } else {
   adminDb = getFirestore();
-  adminAuth = getAuth();
 }
 
-export { adminDb, adminAuth };
+export { adminDb };
