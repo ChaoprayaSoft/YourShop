@@ -314,7 +314,7 @@ export default function ShopDashboard() {
         {/* Row 1: Shop Name */}
         <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', marginBottom: '8px' }}>
           {shop.name}
-          {isClosed && <span style={{ fontSize: '0.8rem', background: '#999', color: 'white', padding: '4px 8px', borderRadius: '4px' }}>CLOSED</span>}
+          {isClosed && <span style={{ fontSize: '0.8rem', background: 'var(--accent-color)', color: '#ffffff', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' }}>CLOSED</span>}
         </h1>
 
         {/* Row 2: Market & By */}

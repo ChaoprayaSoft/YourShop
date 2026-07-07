@@ -100,7 +100,7 @@ export default function MarketplacePage() {
                     <div style={{ flex: 1 }}>
                       <h2 style={{ fontSize: '1.2rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {shop.name}
-                        {isClosed && <span style={{ fontSize: '0.75rem', background: '#999', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>CLOSED</span>}
+                        {isClosed && <span style={{ fontSize: '0.75rem', background: 'var(--accent-color)', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>CLOSED</span>}
                       </h2>
                       <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {shop.description}
