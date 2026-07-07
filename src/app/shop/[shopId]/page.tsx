@@ -145,7 +145,10 @@ export default function ShopDashboard() {
 
   // --- Functions ---
   const handleToggleShopStatus = async () => {
-    const newStatus = !isClosed;
+    // If the shop is currently closed (isClosed = true), the new status should be OPEN (isOpen = true).
+    // If the shop is currently open (isClosed = false), the new status should be CLOSED (isOpen = false).
+    const newStatus = isClosed; 
+    
     if (newStatus && isPastDue) {
       alert(`ไม่สามารถเปิดร้านได้ กรุณาชำระค่าธรรมเนียมบำรุงรักษาก่อน (Cannot open shop, please pay maintenance fee)`);
       return;
