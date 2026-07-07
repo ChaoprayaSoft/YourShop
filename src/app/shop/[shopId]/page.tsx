@@ -794,7 +794,10 @@ export default function ShopDashboard() {
                     
                     await fetch('/api/notify', {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
+                      headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-secret': process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+                      },
                       body: JSON.stringify({
                         type: 'topup_request',
                         recipientEmail: adminEmail,
