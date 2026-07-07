@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLiff } from '@/components/LiffProvider';
 import { useLanguage } from '@/components/LanguageProvider';
-import { getReports, Report } from '@/lib/db/reports';
+import { getReports, updateReportStatus, Report } from '@/lib/db/reports';
 import { getUserProfile, UserProfile } from '@/lib/db/users';
 import { getShop, Shop } from '@/lib/db/shops';
 import { getMarket, Market } from '@/lib/db/markets';
@@ -56,6 +56,16 @@ export default function AdminReportsPage() {
     }
   }, [profile]);
 
+  const handleMarkAsRead = async (reportId: string) => {
+    try {
+      await updateReportStatus(reportId, 'read');
+      setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: 'read' } : r));
+    } catch (err) {
+      console.error(err);
+      alert('Error updating status');
+    }
+  };
+
   if (!profile || profile.userId !== process.env.NEXT_PUBLIC_ADMIN_USER_ID) {
     return <div style={{ padding: '24px', textAlign: 'center' }}>{t('unauthorized')}</div>;
   }
@@ -76,7 +86,7 @@ export default function AdminReportsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {reports.map((report) => (
-            <div key={report.id} className="glass-panel" style={{ padding: '24px' }}>
+            <div key={report.id} className="glass-panel" style={{ padding: '24px', borderLeft: (report.status === 'unread' || !report.status) ? '4px solid var(--accent-color)' : '4px solid #ddd' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', gap: '16px' }}>
                 <div>
                   <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>Reported by: {report.userName}</h3>
@@ -84,8 +94,19 @@ export default function AdminReportsPage() {
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Market: {report.marketName}</div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Shop: {report.shopName}</div>
                 </div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                  {report.createdAt ? new Date(report.createdAt.seconds ? report.createdAt.seconds * 1000 : report.createdAt).toLocaleString('th-TH') : ''}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                    {report.createdAt ? new Date(report.createdAt.seconds ? report.createdAt.seconds * 1000 : report.createdAt).toLocaleString('th-TH') : ''}
+                  </div>
+                  {(report.status === 'unread' || !report.status) ? (
+                    <div style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, backgroundColor: 'rgba(255, 107, 107, 0.1)', color: 'var(--accent-color)' }}>
+                      UNREAD
+                    </div>
+                  ) : (
+                    <div style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, backgroundColor: 'rgba(123, 97, 255, 0.1)', color: 'var(--primary-color)' }}>
+                      READ
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -97,7 +118,7 @@ export default function AdminReportsPage() {
               </div>
 
               {report.imageUrl && (
-                <div>
+                <div style={{ marginBottom: '16px' }}>
                   <div style={{ fontWeight: 600, marginBottom: '8px' }}>Attached Image:</div>
                   <img 
                     src={report.imageUrl} 
@@ -105,6 +126,16 @@ export default function AdminReportsPage() {
                     style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '12px', border: '1px solid #ddd' }} 
                   />
                 </div>
+              )}
+
+              {(report.status === 'unread' || !report.status) && report.id && (
+                <button 
+                  className="btn-primary" 
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px' }}
+                  onClick={() => handleMarkAsRead(report.id!)}
+                >
+                  Mark as Read
+                </button>
               )}
             </div>
           ))}

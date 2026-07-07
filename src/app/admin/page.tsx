@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Shop } from '@/lib/db/shops';
 import { Order } from '@/lib/db/orders';
+import { getPendingTopUpRequests } from '@/lib/db/topups';
+import { getReports } from '@/lib/db/reports';
 import { useLiff } from '@/components/LiffProvider';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -16,6 +18,8 @@ export default function AdminDashboard() {
   
   const [shops, setShops] = useState<Shop[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pendingTopupsCount, setPendingTopupsCount] = useState(0);
+  const [unreadReportsCount, setUnreadReportsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,13 +31,17 @@ export default function AdminDashboard() {
 
     const fetchAdminData = async () => {
       try {
-        const [shopsSnap, ordersSnap] = await Promise.all([
+        const [shopsSnap, ordersSnap, pendingTopups, allReports] = await Promise.all([
           getDocs(collection(db, 'shops')),
-          getDocs(collection(db, 'orders'))
+          getDocs(collection(db, 'orders')),
+          getPendingTopUpRequests().catch(() => []),
+          getReports().catch(() => [])
         ]);
         
         setShops(shopsSnap.docs.map(d => d.data() as Shop));
         setOrders(ordersSnap.docs.map(d => d.data() as Order));
+        setPendingTopupsCount(pendingTopups.length);
+        setUnreadReportsCount(allReports.filter(r => r.status === 'unread' || !r.status).length);
       } catch (error) {
         console.error('Failed to fetch admin data', error);
       } finally {
@@ -98,25 +106,39 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => router.push('/admin/topups')}>
+        <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer', position: 'relative' }} onClick={() => router.push('/admin/topups')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255, 193, 7, 0.1)', color: '#FFC107', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
               🪙
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>Top-up Requests</h2>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Top-up Requests
+                {pendingTopupsCount > 0 && (
+                  <span style={{ background: '#FFC107', color: '#000', fontSize: '0.8rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                    {pendingTopupsCount}
+                  </span>
+                )}
+              </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Approve or reject coin top-up requests</p>
             </div>
           </div>
         </div>
 
-        <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => router.push('/admin/reports')}>
+        <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer', position: 'relative' }} onClick={() => router.push('/admin/reports')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255, 107, 107, 0.1)', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
               ⚠️
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>Reports (แจ้งปัญหา)</h2>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Reports (แจ้งปัญหา)
+                {unreadReportsCount > 0 && (
+                  <span style={{ background: 'var(--accent-color)', color: 'white', fontSize: '0.8rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                    {unreadReportsCount}
+                  </span>
+                )}
+              </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>View issues reported by users</p>
             </div>
           </div>
