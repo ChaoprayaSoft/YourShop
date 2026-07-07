@@ -136,12 +136,20 @@ export async function POST(req: Request) {
         const shopData = shopsSnap.docs[0].data();
         const adMessage = shopData.adMessage || `ร้าน ${shopName} ยินดีให้บริการ!`;
         const shopLink = `https://liff.line.me/${liffId}?shopId=${shopData.id}&marketId=${groupId}`;
+        
+        let marketNameDisplay = 'ตลาดของเรา';
+        if (groupId) {
+          const marketSnap = await adminDb.collection('markets').doc(groupId).get();
+          if (marketSnap.exists) {
+            marketNameDisplay = marketSnap.data()?.name || 'ตลาดของเรา';
+          }
+        }
 
         await client.replyMessage({
           replyToken: event.replyToken,
           messages: [{
             type: 'text',
-            text: `${shopName} พร้อมให้บริการแล้วค่ะ/ครับ!\n\n${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}`
+            text: `${shopName} แห่ง ${marketNameDisplay} พร้อมให้บริการแล้วค่ะ/ครับ!\n\n${adMessage}\n\nเชิญแวะดูและสั่งซื้อได้ที่\n${shopLink}`
           }]
         });
 
