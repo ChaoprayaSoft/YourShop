@@ -312,10 +312,12 @@ export default function ShopDashboard() {
       {/* Shop Header */}
       <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', opacity: isClosed ? 0.7 : 1, display: 'flex', flexDirection: 'column' }}>
         {/* Row 1: Shop Name */}
-        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', marginBottom: '8px' }}>
-          {shop.name}
-          {isClosed && <span style={{ fontSize: '0.8rem', background: 'var(--accent-color)', color: '#ffffff', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' }}>CLOSED</span>}
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', marginBottom: '8px' }}>
+          <h1 className="page-title" style={{ marginBottom: 0 }}>
+            {shop.name}
+          </h1>
+          {isClosed && <span style={{ fontSize: '0.8rem', background: 'var(--accent-color)', color: '#ffffff', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', display: 'inline-block' }}>CLOSED</span>}
+        </div>
 
         {/* Row 2: Market & By */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
