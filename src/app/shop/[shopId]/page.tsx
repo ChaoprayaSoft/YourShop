@@ -236,6 +236,14 @@ export default function ShopDashboard() {
 
   const handlePlaceOrder = async () => {
     if (!profile || cart.length === 0 || isClosed) return;
+    
+    // Check if running inside LINE app
+    const liff = (window as any).liff;
+    if (liff && !liff.isInClient()) {
+      alert('กรุณาเปิดลิงก์นี้ผ่านแอป LINE เพื่อทำการสั่งซื้อ (Please open this link inside the LINE app to place an order)');
+      return;
+    }
+
     setPlacingOrder(true);
     try {
       const user = await getUserProfile(profile.userId);
