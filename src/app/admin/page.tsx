@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [pendingTopupsCount, setPendingTopupsCount] = useState(0);
   const [unreadReportsCount, setUnreadReportsCount] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,15 +32,17 @@ export default function AdminDashboard() {
 
     const fetchAdminData = async () => {
       try {
-        const [shopsSnap, ordersSnap, pendingTopups, allReports] = await Promise.all([
+        const [shopsSnap, ordersSnap, usersSnap, pendingTopups, allReports] = await Promise.all([
           getDocs(collection(db, 'shops')),
           getDocs(collection(db, 'orders')),
+          getDocs(collection(db, 'users')),
           getPendingTopUpRequests().catch(() => []),
           getReports().catch(() => [])
         ]);
         
         setShops(shopsSnap.docs.map(d => d.data() as Shop));
         setOrders(ordersSnap.docs.map(d => d.data() as Order));
+        setTotalUsers(usersSnap.docs.length);
         setPendingTopupsCount(pendingTopups.length);
         setUnreadReportsCount(allReports.filter(r => r.status === 'unread' || !r.status).length);
       } catch (error) {
@@ -70,6 +73,18 @@ export default function AdminDashboard() {
 
       {/* Admin Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+        <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => router.push('/admin/users')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(56, 218, 114, 0.1)', color: 'var(--secondary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
+              👥
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>Total Users</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>View all {totalUsers} registered users and activity</p>
+            </div>
+          </div>
+        </div>
+
         <div className="glass-panel hover-card" style={{ padding: '24px', cursor: 'pointer' }} onClick={() => router.push('/admin/markets')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(123, 97, 255, 0.1)', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>

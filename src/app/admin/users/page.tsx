@@ -1,0 +1,108 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLiff } from '@/components/LiffProvider';
+import { useLanguage } from '@/components/LanguageProvider';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { UserProfile } from '@/lib/db/users';
+
+export default function AdminUsersPage() {
+  const { profile } = useLiff();
+  const router = useRouter();
+  const { t } = useLanguage();
+  
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (profile && profile.userId === process.env.NEXT_PUBLIC_ADMIN_USER_ID) {
+      const fetchUsers = async () => {
+        try {
+          // No complex indexes for now, just fetch all and sort in client if needed
+          // Or just fetch all and display
+          const q = query(collection(db, 'users'));
+          const snap = await getDocs(q);
+          const usersData = snap.docs.map(doc => doc.data() as UserProfile);
+          
+          // Sort by last active (updatedAt) descending
+          usersData.sort((a, b) => {
+            const timeA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : (a.updatedAt?.seconds ? a.updatedAt.seconds * 1000 : 0);
+            const timeB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : (b.updatedAt?.seconds ? b.updatedAt.seconds * 1000 : 0);
+            return timeB - timeA;
+          });
+          
+          setUsers(usersData);
+        } catch (error) {
+          console.error('Failed to fetch users', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchUsers();
+    }
+  }, [profile]);
+
+  if (!profile || profile.userId !== process.env.NEXT_PUBLIC_ADMIN_USER_ID) {
+    return <div style={{ padding: '24px', textAlign: 'center' }}>{t('unauthorized')}</div>;
+  }
+
+  return (
+    <div className="animate-fade-in" style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', paddingBottom: '80px' }}>
+      <button 
+        style={{ color: 'var(--primary-color)', fontWeight: 600, marginBottom: '24px' }}
+        onClick={() => router.push('/admin')}
+      >
+        ← {t('back_to_admin')}
+      </button>
+
+      <h1 className="page-title" style={{ marginBottom: '24px' }}>Total Users ({users.length})</h1>
+
+      {loading ? (
+        <div style={{ color: 'var(--text-secondary)' }}>{t('loading')}</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {users.map((user) => (
+            <div key={user.id} className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {user.pictureUrl ? (
+                <img 
+                  src={user.pictureUrl} 
+                  alt={user.displayName} 
+                  style={{ width: '60px', height: '60px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+              ) : (
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                  {user.displayName.charAt(0)}
+                </div>
+              )}
+              
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{user.displayName}</h3>
+                  <div style={{ padding: '4px 8px', borderRadius: '8px', background: 'rgba(255, 193, 7, 0.1)', color: '#FFC107', fontWeight: 600, fontSize: '0.85rem' }}>
+                    🪙 {user.coins}
+                  </div>
+                </div>
+                
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '4px' }}>
+                  Email: {user.email || 'N/A'}
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
+                  <div>
+                    Last Active: {user.updatedAt ? new Date(user.updatedAt.seconds ? user.updatedAt.seconds * 1000 : user.updatedAt).toLocaleString('th-TH') : 'N/A'}
+                  </div>
+                  <div>
+                    Joined: {user.createdAt ? new Date(user.createdAt.seconds ? user.createdAt.seconds * 1000 : user.createdAt).toLocaleString('th-TH') : 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          {users.length === 0 && <div style={{ color: '#999' }}>No users found.</div>}
+        </div>
+      )}
+    </div>
+  );
+}
