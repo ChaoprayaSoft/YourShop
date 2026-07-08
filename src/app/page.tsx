@@ -473,6 +473,10 @@ export default function Home() {
         </div>
       )}
 
+      {/* Footer */}
+      <div style={{ marginTop: '48px', padding: '24px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.85rem', borderTop: '1px solid #eee' }}>
+        © Since July 2026 ChaoprayaSoft | tiawongsombat@gmail.com
+      </div>
     </div>
   );
 }
