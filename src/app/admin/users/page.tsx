@@ -7,24 +7,44 @@ import { useLanguage } from '@/components/LanguageProvider';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { UserProfile } from '@/lib/db/users';
+import { Shop } from '@/lib/db/shops';
+import { Market } from '@/lib/db/markets';
+
+type EnrichedUser = UserProfile & { shopName?: string; marketName?: string };
 
 export default function AdminUsersPage() {
   const { profile } = useLiff();
   const router = useRouter();
   const { t } = useLanguage();
   
-  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [users, setUsers] = useState<EnrichedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (profile && profile.userId === process.env.NEXT_PUBLIC_ADMIN_USER_ID) {
       const fetchUsers = async () => {
         try {
-          // No complex indexes for now, just fetch all and sort in client if needed
-          // Or just fetch all and display
-          const q = query(collection(db, 'users'));
-          const snap = await getDocs(q);
-          const usersData = snap.docs.map(doc => doc.data() as UserProfile);
+          const [usersSnap, shopsSnap, marketsSnap] = await Promise.all([
+            getDocs(query(collection(db, 'users'))),
+            getDocs(query(collection(db, 'shops'))),
+            getDocs(query(collection(db, 'markets')))
+          ]);
+          
+          const shops = shopsSnap.docs.map(doc => doc.data() as Shop);
+          const markets = marketsSnap.docs.map(doc => doc.data() as Market);
+          
+          const usersData = usersSnap.docs.map(doc => {
+            const u = doc.data() as UserProfile;
+            const shop = shops.find(s => s.id === u.id);
+            const activeMarketId = shop?.marketId || u.marketId;
+            const market = markets.find(m => m.id === activeMarketId);
+            
+            return {
+              ...u,
+              shopName: shop?.name,
+              marketName: market?.name
+            };
+          });
           
           // Sort by last active (updatedAt) descending
           usersData.sort((a, b) => {
@@ -88,6 +108,21 @@ export default function AdminUsersPage() {
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', wordBreak: 'break-all' }}>
                     {user.email || 'No email'}
                   </div>
+                  
+                  {(user.shopName || user.marketName) && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                      {user.marketName && (
+                        <div style={{ padding: '2px 6px', background: 'rgba(123, 97, 255, 0.1)', color: 'var(--primary-color)', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
+                          🏙️ {user.marketName}
+                        </div>
+                      )}
+                      {user.shopName && (
+                        <div style={{ padding: '2px 6px', background: 'rgba(56, 218, 114, 0.1)', color: 'var(--secondary-color)', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
+                          🏪 {user.shopName}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               
