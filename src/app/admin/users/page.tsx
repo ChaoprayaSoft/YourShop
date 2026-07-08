@@ -64,38 +64,41 @@ export default function AdminUsersPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {users.map((user) => (
-            <div key={user.id} className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-              {user.pictureUrl ? (
-                <img 
-                  src={user.pictureUrl} 
-                  alt={user.displayName} 
-                  style={{ width: '60px', height: '60px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                />
-              ) : (
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                  {user.displayName.charAt(0)}
+            <div key={user.id} className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                {user.pictureUrl ? (
+                  <img 
+                    src={user.pictureUrl} 
+                    alt={user.displayName} 
+                    style={{ width: '48px', height: '48px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', flexShrink: 0 }}
+                  />
+                ) : (
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', flexShrink: 0 }}>
+                    {user.displayName.charAt(0)}
+                  </div>
+                )}
+                
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                    <h3 style={{ fontSize: '1.05rem', wordBreak: 'break-word', margin: 0, lineHeight: 1.2 }}>{user.displayName}</h3>
+                    <div style={{ padding: '2px 8px', borderRadius: '8px', background: 'rgba(255, 193, 7, 0.1)', color: '#FFC107', fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      🪙 {user.coins}
+                    </div>
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', wordBreak: 'break-all' }}>
+                    {user.email || 'No email'}
+                  </div>
                 </div>
-              )}
+              </div>
               
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{user.displayName}</h3>
-                  <div style={{ padding: '4px 8px', borderRadius: '8px', background: 'rgba(255, 193, 7, 0.1)', color: '#FFC107', fontWeight: 600, fontSize: '0.85rem' }}>
-                    🪙 {user.coins}
-                  </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.75rem', color: 'var(--text-tertiary)', borderTop: '1px solid #eee', paddingTop: '12px' }}>
+                <div style={{ background: '#f9f9f9', padding: '6px 8px', borderRadius: '6px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>Last Active</div>
+                  <div style={{ wordBreak: 'break-word' }}>{user.updatedAt ? new Date(user.updatedAt.seconds ? user.updatedAt.seconds * 1000 : user.updatedAt).toLocaleString('th-TH') : 'N/A'}</div>
                 </div>
-                
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '4px' }}>
-                  Email: {user.email || 'N/A'}
-                </div>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
-                  <div>
-                    Last Active: {user.updatedAt ? new Date(user.updatedAt.seconds ? user.updatedAt.seconds * 1000 : user.updatedAt).toLocaleString('th-TH') : 'N/A'}
-                  </div>
-                  <div>
-                    Joined: {user.createdAt ? new Date(user.createdAt.seconds ? user.createdAt.seconds * 1000 : user.createdAt).toLocaleString('th-TH') : 'N/A'}
-                  </div>
+                <div style={{ background: '#f9f9f9', padding: '6px 8px', borderRadius: '6px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>Joined</div>
+                  <div style={{ wordBreak: 'break-word' }}>{user.createdAt ? new Date(user.createdAt.seconds ? user.createdAt.seconds * 1000 : user.createdAt).toLocaleString('th-TH') : 'N/A'}</div>
                 </div>
               </div>
             </div>
